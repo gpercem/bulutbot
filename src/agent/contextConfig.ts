@@ -18,9 +18,6 @@ export const MAX_HEADINGS = 10;
 /** Maximum number of main-content text snippets. */
 export const MAX_TEXT_SNIPPETS = 4;
 
-/** Maximum character length for the outer-HTML skeleton digest. */
-export const MAX_OUTER_HTML_DIGEST = 760;
-
 /** Maximum number of pages kept in the in-memory context cache. */
 export const MAX_CACHED_PAGES = 20;
 
@@ -36,8 +33,8 @@ export const MAX_BRANCH_SAMPLES = 4;
 /** Maximum tree depth for each branch digest sample. */
 export const MAX_BRANCH_DEPTH = 2;
 
-/** Maximum character length for the full context summary. */
-export const MAX_CONTEXT_SUMMARY_CHARS = 3400;
+/** Maximum stylesheet selectors to include in summary. */
+export const MAX_STYLESHEET_SELECTORS = 80;
 
-/** Maximum character length for context summary + recent page history. */
-export const MAX_CONTEXT_WITH_HISTORY_CHARS = 4200;
+/** Maximum CSS rules to scan while collecting stylesheet selectors. */
+export const MAX_STYLESHEET_RULES = 700;

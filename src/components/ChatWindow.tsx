@@ -6,6 +6,7 @@ import {
   agentVoiceChatStream,
   agentResumeStream,
   startSttWebSocketStream,
+  stopActiveAudioPlayback,
   speakText,
   type AudioStreamState,
   type StreamController,
@@ -114,6 +115,21 @@ export const resolveStatusText = (flags: StatusFlags): string => {
   if (flags.isBusy) return STATUS_LABELS.loading;
   return STATUS_LABELS.ready;
 };
+
+export const hasActiveStatus = (
+  flags: StatusFlags,
+  statusOverride: string | null,
+): boolean =>
+  Boolean(
+    statusOverride
+    || flags.isBusy
+    || flags.isRecording
+    || flags.isTranscribing
+    || flags.isThinking
+    || flags.isRenderingAudio
+    || flags.isPlayingAudio
+    || flags.isRunningTools,
+  );
 
 export const formatDurationMs = (durationMs: number): string => {
   const totalSeconds = Math.max(0, Math.floor(durationMs / 1000));
@@ -232,8 +248,7 @@ export const ChatWindow = ({
   const [isRunningTools, setIsRunningTools] = useState(false);
   const [recordingDurationMs, setRecordingDurationMs] = useState(0);
   const [statusOverride, setStatusOverride] = useState<string | null>(null);
-
-  const resolvedStatusText = resolveStatusText({
+  const statusFlags: StatusFlags = {
     isBusy,
     isRecording,
     isTranscribing,
@@ -241,8 +256,10 @@ export const ChatWindow = ({
     isRenderingAudio,
     isPlayingAudio,
     isRunningTools,
-  });
-  const statusText = statusOverride ?? resolvedStatusText;
+  };
+  const resolvedStatusText = resolveStatusText(statusFlags);
+  const showStatus = hasActiveStatus(statusFlags, statusOverride);
+  const statusText = showStatus ? (statusOverride ?? resolvedStatusText) : STATUS_LABELS.ready;
 
   const isBusyRef = useRef(isBusy);
   const isRecordingRef = useRef(isRecording);
@@ -297,6 +314,8 @@ export const ChatWindow = ({
   const liveTranscriptionMessageIdRef = useRef<number | null>(null);
   const liveTranscriptionTextRef = useRef("");
   const autoListenSuppressedRef = useRef(false);
+  const requestEpochRef = useRef(0);
+  const sttSendCuePlayedRef = useRef(false);
 
   useEffect(() => {
     isBusyRef.current = isBusy;
@@ -323,10 +342,15 @@ export const ChatWindow = ({
       onPreviewChange(lastAssistant?.text ?? getGreetingText(config.agentName));
       return;
     }
-    if (isBusy || isTranscribing || isThinking || isRunningTools) {
+    if (showStatus) {
       const st = statusOverride ?? resolveStatusText({
-        isBusy, isRecording, isTranscribing, isThinking,
-        isRenderingAudio, isPlayingAudio, isRunningTools,
+        isBusy,
+        isRecording,
+        isTranscribing,
+        isThinking,
+        isRenderingAudio,
+        isPlayingAudio,
+        isRunningTools,
       });
       onPreviewChange(st);
       return;
@@ -334,11 +358,41 @@ export const ChatWindow = ({
     // Show last assistant message (or greeting)
     const lastAssistant = [...messages].reverse().find(m => !m.isUser && m.type !== "tool");
     onPreviewChange(lastAssistant?.text ?? getGreetingText(config.agentName));
-  }, [isRecording, isBusy, isTranscribing, isThinking, isRunningTools,
-      isPlayingAudio, isRenderingAudio, statusOverride, messages]);
+  }, [
+    isRecording,
+    isBusy,
+    isTranscribing,
+    isThinking,
+    isRunningTools,
+    isPlayingAudio,
+    isRenderingAudio,
+    statusOverride,
+    showStatus,
+    messages,
+  ]);
 
   const playSfx = (name: SfxName) => {
     playCue(name);
+  };
+
+  const beginRequestEpoch = () => {
+    requestEpochRef.current += 1;
+    return requestEpochRef.current;
+  };
+
+  const invalidateRequestEpoch = () => {
+    requestEpochRef.current += 1;
+  };
+
+  const isCurrentRequestEpoch = (epoch: number): boolean =>
+    requestEpochRef.current === epoch;
+
+  const playSttSentCueOnce = () => {
+    if (sttSendCuePlayedRef.current) {
+      return;
+    }
+    sttSendCuePlayedRef.current = true;
+    playSfx("sent");
   };
 
   useEffect(() => {
@@ -463,10 +517,12 @@ export const ChatWindow = ({
 
   useEffect(
     () => () => {
+      invalidateRequestEpoch();
       clearMicHoldTimeout();
       pendingStopAfterStartRef.current = false;
 
       stopActiveStream();
+      stopActiveAudioPlayback();
       cancelActiveSttWs();
       cleanupVAD();
       stopStreamTracks();
@@ -504,6 +560,7 @@ export const ChatWindow = ({
       }
     }
 
+    const requestEpoch = beginRequestEpoch();
     setIsBusy(true);
     setIsRunningTools(true);
     setStatusOverride(STATUS_LABELS.thinking);
@@ -527,6 +584,7 @@ export const ChatWindow = ({
       freshPageContext,
       {
         onSessionId: (sid) => {
+          if (!isCurrentRequestEpoch(requestEpoch)) return;
           if (sid && sid !== sessionIdRef.current) {
             sessionIdRef.current = sid;
             if (typeof localStorage !== "undefined") {
@@ -535,6 +593,7 @@ export const ChatWindow = ({
           }
         },
         onAssistantDelta: (delta) => {
+          if (!isCurrentRequestEpoch(requestEpoch)) return;
           setIsRunningTools(false);
           setIsThinking(true);
           setStatusOverride(null);
@@ -554,6 +613,7 @@ export const ChatWindow = ({
           }
         },
         onAssistantDone: (assistantText) => {
+          if (!isCurrentRequestEpoch(requestEpoch)) return;
           playSfx("completed");
           setStatusOverride(null);
           setIsThinking(false);
@@ -576,12 +636,14 @@ export const ChatWindow = ({
           }
         },
         onIntermediateReply: (text) => {
+          if (!isCurrentRequestEpoch(requestEpoch)) return;
           void speakText(
             config.backendBaseUrl, text, config.voice,
-            accessibilityMode, handleAudioStateChange,
+            accessibilityMode, (state) => handleAudioStateChange(state, requestEpoch),
           ).catch((err) => console.warn("[Bulut] intermediate TTS failed", err));
         },
         onToolCalls: (calls) => {
+          if (!isCurrentRequestEpoch(requestEpoch)) return;
           if (calls.length > 0) {
             playSfx("toolCall");
           }
@@ -618,12 +680,16 @@ export const ChatWindow = ({
         },
         onToolResult: () => {},
         onIteration: () => {
+          if (!isCurrentRequestEpoch(requestEpoch)) return;
           playSfx("thinking");
           setIsThinking(true);
           setStatusOverride(STATUS_LABELS.thinking);
         },
-        onAudioStateChange: handleAudioStateChange,
+        onAudioStateChange: (state) => {
+          handleAudioStateChange(state, requestEpoch);
+        },
         onError: (err) => {
+          if (!isCurrentRequestEpoch(requestEpoch)) return;
           setStatusOverride(null);
           appendMessage(`Hata: ${err}`, false);
         },
@@ -636,6 +702,7 @@ export const ChatWindow = ({
     controller.done
       .catch(() => {})
       .finally(() => {
+        if (!isCurrentRequestEpoch(requestEpoch)) return;
         setIsBusy(false);
         setIsRunningTools(false);
         setIsThinking(false);
@@ -698,7 +765,11 @@ export const ChatWindow = ({
     liveTranscriptionTextRef.current = "";
   };
 
-  const handleAudioStateChange = (state: AudioStreamState) => {
+  const handleAudioStateChange = (state: AudioStreamState, requestEpoch?: number) => {
+    if (typeof requestEpoch === "number" && !isCurrentRequestEpoch(requestEpoch)) {
+      return;
+    }
+
     if (state === "rendering") {
       setIsRenderingAudio(true);
       setIsPlayingAudio(false);
@@ -727,7 +798,11 @@ export const ChatWindow = ({
     setIsPlayingAudio(false);
   };
 
-  const finalizeStreamCycle = () => {
+  const finalizeStreamCycle = (requestEpoch?: number) => {
+    if (typeof requestEpoch === "number" && !isCurrentRequestEpoch(requestEpoch)) {
+      return;
+    }
+
     awaitingAssistantResponseRef.current = false;
     setStatusOverride(null);
     setIsBusy(false);
@@ -767,6 +842,7 @@ export const ChatWindow = ({
       return;
     }
 
+    const requestEpoch = beginRequestEpoch();
     setIsBusy(true);
     setIsTranscribing(false);
     setIsThinking(true);
@@ -812,6 +888,7 @@ export const ChatWindow = ({
         },
         {
           onSessionId: (sid) => {
+            if (!isCurrentRequestEpoch(requestEpoch)) return;
             if (sid && sid !== sessionIdRef.current) {
               sessionIdRef.current = sid;
               if (typeof localStorage !== "undefined") {
@@ -820,6 +897,7 @@ export const ChatWindow = ({
             }
           },
           onAssistantDelta: (delta) => {
+            if (!isCurrentRequestEpoch(requestEpoch)) return;
             setIsTranscribing(false);
             setIsThinking(true);
             setIsRunningTools(false);
@@ -843,6 +921,7 @@ export const ChatWindow = ({
             }
           },
           onAssistantDone: (assistantText) => {
+            if (!isCurrentRequestEpoch(requestEpoch)) return;
             playSfx("completed");
             awaitingAssistantResponseRef.current = false;
             setStatusOverride(null);
@@ -865,12 +944,14 @@ export const ChatWindow = ({
             }
           },
           onIntermediateReply: (text) => {
+            if (!isCurrentRequestEpoch(requestEpoch)) return;
             void speakText(
               config.backendBaseUrl, text, config.voice,
-              accessibilityMode, handleAudioStateChange,
+              accessibilityMode, (state) => handleAudioStateChange(state, requestEpoch),
             ).catch((err) => console.warn("[Bulut] intermediate TTS failed", err));
           },
           onToolCalls: (calls) => {
+            if (!isCurrentRequestEpoch(requestEpoch)) return;
             if (calls.length > 0) {
               playSfx("toolCall");
             }
@@ -907,12 +988,16 @@ export const ChatWindow = ({
           },
           onToolResult: () => {},
           onIteration: () => {
+            if (!isCurrentRequestEpoch(requestEpoch)) return;
             playSfx("thinking");
             setIsThinking(true);
             setStatusOverride(STATUS_LABELS.thinking);
           },
-          onAudioStateChange: handleAudioStateChange,
+          onAudioStateChange: (state) => {
+            handleAudioStateChange(state, requestEpoch);
+          },
           onError: (err) => {
+            if (!isCurrentRequestEpoch(requestEpoch)) return;
             awaitingAssistantResponseRef.current = false;
             setStatusOverride(null);
             appendMessage(`Hata: ${err}`, false);
@@ -924,13 +1009,14 @@ export const ChatWindow = ({
       activeStreamControllerRef.current = controller;
       await controller.done;
     } catch (error) {
+      if (!isCurrentRequestEpoch(requestEpoch)) return;
       awaitingAssistantResponseRef.current = false;
       setStatusOverride(null);
       if (error instanceof Error) {
         appendMessage(`Hata: ${error.message}`, false);
       }
     } finally {
-      finalizeStreamCycle();
+      finalizeStreamCycle(requestEpoch);
     }
   };
 
@@ -940,6 +1026,7 @@ export const ChatWindow = ({
       return;
     }
 
+    const requestEpoch = beginRequestEpoch();
     setIsBusy(true);
     setIsTranscribing(true);
     setIsThinking(false);
@@ -996,9 +1083,11 @@ export const ChatWindow = ({
         },
         {
           onSttRequestSent: () => {
-            playSfx("sent");
+            if (!isCurrentRequestEpoch(requestEpoch)) return;
+            playSttSentCueOnce();
           },
           onTranscription: (data) => {
+            if (!isCurrentRequestEpoch(requestEpoch)) return;
             if (data.session_id && data.session_id !== sessionIdRef.current) {
               sessionIdRef.current = data.session_id;
               if (typeof localStorage !== "undefined") {
@@ -1023,6 +1112,7 @@ export const ChatWindow = ({
             setStatusOverride(STATUS_LABELS.thinking);
           },
           onSessionId: (sid) => {
+            if (!isCurrentRequestEpoch(requestEpoch)) return;
             if (sid && sid !== sessionIdRef.current) {
               sessionIdRef.current = sid;
               if (typeof localStorage !== "undefined") {
@@ -1031,6 +1121,7 @@ export const ChatWindow = ({
             }
           },
           onAssistantDelta: (delta) => {
+            if (!isCurrentRequestEpoch(requestEpoch)) return;
             setIsTranscribing(false);
             setIsThinking(true);
             setIsRunningTools(false);
@@ -1055,6 +1146,7 @@ export const ChatWindow = ({
             }
           },
           onAssistantDone: (assistantText) => {
+            if (!isCurrentRequestEpoch(requestEpoch)) return;
             playSfx("completed");
             awaitingAssistantResponseRef.current = false;
             setStatusOverride(null);
@@ -1080,12 +1172,14 @@ export const ChatWindow = ({
             }
           },
           onIntermediateReply: (text) => {
+            if (!isCurrentRequestEpoch(requestEpoch)) return;
             void speakText(
               config.backendBaseUrl, text, config.voice,
-              accessibilityMode, handleAudioStateChange,
+              accessibilityMode, (state) => handleAudioStateChange(state, requestEpoch),
             ).catch((err) => console.warn("[Bulut] intermediate TTS failed", err));
           },
           onToolCalls: (calls) => {
+            if (!isCurrentRequestEpoch(requestEpoch)) return;
             if (calls.length > 0) {
               playSfx("toolCall");
             }
@@ -1128,13 +1222,17 @@ export const ChatWindow = ({
             // Could display detailed result here if needed.
           },
           onIteration: (_iteration, _maxIterations) => {
+            if (!isCurrentRequestEpoch(requestEpoch)) return;
             // Agent started a new reasoning iteration
             playSfx("thinking");
             setIsThinking(true);
             setStatusOverride(STATUS_LABELS.thinking);
           },
-          onAudioStateChange: handleAudioStateChange,
+          onAudioStateChange: (state) => {
+            handleAudioStateChange(state, requestEpoch);
+          },
           onError: (err) => {
+            if (!isCurrentRequestEpoch(requestEpoch)) return;
             awaitingAssistantResponseRef.current = false;
             setStatusOverride(null);
             appendMessage(`Hata: ${err}`, false);
@@ -1152,11 +1250,12 @@ export const ChatWindow = ({
          // flushPendingMessages(); // Removed as we stream now
       } */
     } catch (error) {
+      if (!isCurrentRequestEpoch(requestEpoch)) return;
       // Error already shown via onError callback — don't duplicate
       awaitingAssistantResponseRef.current = false;
       setStatusOverride(null);
     } finally {
-      finalizeStreamCycle();
+      finalizeStreamCycle(requestEpoch);
     }
   };
 
@@ -1283,6 +1382,7 @@ export const ChatWindow = ({
       recorderRef.current = recorder;
       audioChunksRef.current = [];
       clearLiveUserTranscriptionState();
+      sttSendCuePlayedRef.current = false;
 
       const sttMimeType = (recorder.mimeType || recorderOptions.mimeType || "audio/webm")
         .split(";")[0]
@@ -1297,9 +1397,6 @@ export const ChatWindow = ({
           mimeType: sttMimeType,
         },
         {
-          onRequestSent: () => {
-            playSfx("sent");
-          },
           onSessionId: (sid) => {
             if (!sid || sid === sessionIdRef.current) {
               return;
@@ -1376,6 +1473,7 @@ export const ChatWindow = ({
 
         try {
           if (currentSttWs) {
+            playSttSentCueOnce();
             const sttResult = await currentSttWs.stop();
             if (sttResult.session_id && sttResult.session_id !== sessionIdRef.current) {
               sessionIdRef.current = sttResult.session_id;
@@ -1533,10 +1631,13 @@ export const ChatWindow = ({
   };
 
   const handleRestart = () => {
+    invalidateRequestEpoch();
+    sttSendCuePlayedRef.current = false;
     resetMicGesture();
     pendingStopAfterStartRef.current = false;
 
     stopActiveStream();
+    stopActiveAudioPlayback();
     cancelActiveSttWs();
 
     if (recorderRef.current && recorderRef.current.state !== "inactive") {
@@ -1578,7 +1679,10 @@ export const ChatWindow = ({
   }, [accessibilityMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const stopTask = () => {
+    invalidateRequestEpoch();
+    sttSendCuePlayedRef.current = false;
     stopActiveStream();
+    stopActiveAudioPlayback();
     cancelActiveSttWs();
     stopRecording({ discard: true });
     cleanupVAD();
@@ -1595,6 +1699,7 @@ export const ChatWindow = ({
         void startRecording("vad");
       },
       cancelRecording: () => {
+        stopActiveAudioPlayback();
         cancelActiveSttWs();
         const recorder = recorderRef.current;
         if (recorder && recorder.state !== "inactive") {
@@ -1871,7 +1976,7 @@ export const ChatWindow = ({
 
       <div style={footerStyle}>
         <div style={{ ...statusPanelStyle, transition: "opacity 0.2s ease-out" }}>
-          {statusText !== STATUS_LABELS.ready ? (
+          {showStatus ? (
             <span className="bulut-status-dots" title={statusText}>
               {statusText}
             </span>

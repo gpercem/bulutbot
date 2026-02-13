@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
-  MAX_CONTEXT_SUMMARY_CHARS,
   PAGE_CONTEXT_CACHE_KEY,
   PAGE_CONTEXT_CACHE_VERSION,
   buildPageContextSummary,
@@ -19,6 +18,7 @@ const buildInput = (): PageContextSummaryInput => ({
     "- coverage: semantic=8, non-semantic=6, contenteditable=1",
     "- listener hints: click*4, keydown*2",
   ],
+  styleSelectors: [".hero button:hover", "[role='button']:focus"],
   pageBlueprint: [
     "- nodes: total=120, scanned=120, visible=84, max-depth=9",
     "- branch digest: main#app>section.hero+section.features || nav.topbar>a+a+a",
@@ -67,6 +67,7 @@ describe("buildPageContextSummary", () => {
     expect(summary).toContain("Headings:");
     expect(summary).toContain("Landmark Snapshot:");
     expect(summary).toContain("Interaction Signals:");
+    expect(summary).toContain("Stylesheet Selector Snapshot:");
     expect(summary).toContain("Compressed Page Blueprint:");
     expect(summary).toContain("Top Links:");
     expect(summary).toContain("Top Interactables:");
@@ -74,13 +75,13 @@ describe("buildPageContextSummary", () => {
     expect(summary).toContain("OuterHTML Skeleton:");
   });
 
-  it("respects configured character budget and marks truncation", () => {
+  it("does not truncate oversized summaries", () => {
     const oversized = buildInput();
-    oversized.outerHtmlDigest = "x".repeat(MAX_CONTEXT_SUMMARY_CHARS * 2);
+    oversized.outerHtmlDigest = "x".repeat(12_000);
 
-    const summary = buildPageContextSummary(oversized, 500);
-    expect(summary.length).toBeLessThanOrEqual(500);
-    expect(summary).toContain("...[truncated]");
+    const summary = buildPageContextSummary(oversized);
+    expect(summary.length).toBeGreaterThan(12_000);
+    expect(summary).not.toContain("...[truncated]");
   });
 
   it("restores page context entries from session storage cache", () => {

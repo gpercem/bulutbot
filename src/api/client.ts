@@ -1,6 +1,7 @@
 import {
   savePendingAgentResume,
   clearPendingAgentResume,
+  hideAgentCursor,
   type PendingAgentResume,
 } from "../agent/tools";
 
@@ -54,6 +55,10 @@ interface SttWsEventPayload {
 
 export type AudioStreamState = "rendering" | "playing" | "done" | "fallback";
 export const TTS_WS_RETRY_DELAYS_MS = [250, 750, 1500];
+
+const BULUT_AUDIO_STOP_EVENT = "bulut:audio-stop";
+const activeAudioElements = new Set<HTMLAudioElement>();
+let audioPlaybackGeneration = 0;
 
 const normalizeBaseUrl = (baseUrl: string): string => {
   const trimmed = baseUrl.trim().replace(/\/+$/, "");
@@ -135,6 +140,34 @@ const sleep = (ms: number): Promise<void> =>
     setTimeout(resolve, ms);
   });
 
+const registerActiveAudioElement = (audioElement: HTMLAudioElement): void => {
+  activeAudioElements.add(audioElement);
+};
+
+const unregisterActiveAudioElement = (audioElement: HTMLAudioElement): void => {
+  activeAudioElements.delete(audioElement);
+};
+
+const wasPlaybackStoppedAfter = (generationAtStart: number): boolean =>
+  audioPlaybackGeneration !== generationAtStart;
+
+export const getAudioPlaybackGeneration = (): number => audioPlaybackGeneration;
+
+export const stopActiveAudioPlayback = (): void => {
+  audioPlaybackGeneration += 1;
+  const active = Array.from(activeAudioElements);
+  for (const audioElement of active) {
+    try {
+      audioElement.dispatchEvent(new Event(BULUT_AUDIO_STOP_EVENT));
+      audioElement.pause();
+      audioElement.removeAttribute("src");
+      audioElement.load();
+    } catch {
+      // Ignore playback stop errors.
+    }
+  }
+};
+
 export const base64ToUint8Array = (base64: string): Uint8Array<ArrayBuffer> => {
   // Strip potential data URI prefix if present
   const cleanBase64 = base64.replace(/^data:audio\/\w+;base64,/, "");
@@ -209,14 +242,21 @@ const waitForPlaybackEnd = async (
       reject(new Error("Ses oynatma hatası oluştu."));
     };
 
+    const onForcedStop = () => {
+      cleanup();
+      resolve();
+    };
+
     const cleanup = () => {
       window.clearInterval(watchdog);
       audioElement.removeEventListener("ended", onEnded);
       audioElement.removeEventListener("error", onError);
+      audioElement.removeEventListener(BULUT_AUDIO_STOP_EVENT, onForcedStop);
     };
 
     audioElement.addEventListener("ended", onEnded);
     audioElement.addEventListener("error", onError);
+    audioElement.addEventListener(BULUT_AUDIO_STOP_EVENT, onForcedStop);
   });
 };
 
@@ -228,7 +268,13 @@ const playBufferedAudio = async (
   sampleRate: number = 16000,
   onAudioStateChange?: (state: AudioStreamState) => void,
 ): Promise<void> => {
+  const playbackGeneration = getAudioPlaybackGeneration();
   if (chunks.length === 0) {
+    onAudioStateChange?.("done");
+    return;
+  }
+
+  if (wasPlaybackStoppedAfter(playbackGeneration)) {
     onAudioStateChange?.("done");
     return;
   }
@@ -286,11 +332,18 @@ const playBufferedAudio = async (
   const objectUrl = URL.createObjectURL(blob);
 
   try {
+    registerActiveAudioElement(audioElement);
+
     audioElement.preload = "auto";
     audioElement.autoplay = true;
     // Some browsers need this
     audioElement.setAttribute("playsinline", "true");
     audioElement.src = objectUrl;
+
+    if (wasPlaybackStoppedAfter(playbackGeneration)) {
+      onAudioStateChange?.("done");
+      return;
+    }
 
     await audioElement.play();
     onAudioStateChange?.("playing");
@@ -301,6 +354,7 @@ const playBufferedAudio = async (
     onAudioStateChange?.("done"); // Signal done to unblock UI even on error
     throw err;
   } finally {
+    unregisterActiveAudioElement(audioElement);
     audioElement.pause();
     audioElement.removeAttribute("src");
     audioElement.load();
@@ -852,6 +906,7 @@ export const speakText = async (
 ): Promise<void> => {
   const trimmed = text.trim();
   if (!trimmed) return;
+  const playbackGeneration = getAudioPlaybackGeneration();
 
   console.info(`[Bulut] speakText start (${trimmed.length} chars)`);
   onAudioStateChange?.("rendering");
@@ -871,6 +926,11 @@ export const speakText = async (
       neverStopped,
       () => {},
     );
+  }
+
+  if (wasPlaybackStoppedAfter(playbackGeneration)) {
+    onAudioStateChange?.("done");
+    return;
   }
 
   if (ttsResult.chunks.length > 0) {
@@ -1083,6 +1143,9 @@ export const agentVoiceChatStream = (
 
       // ── 3. TTS ────────────────────────────────────────────────
       if (isStopped || !assistantText) {
+        if (!isStopped) {
+          hideAgentCursor();
+        }
         return resolve();
       }
 
@@ -1128,6 +1191,9 @@ export const agentVoiceChatStream = (
         events.onAudioStateChange?.("done");
       }
 
+      if (!isStopped) {
+        hideAgentCursor();
+      }
       resolve();
     } catch (err) {
       // Only emit onError if it hasn't been emitted already by the WS handler
@@ -1148,6 +1214,7 @@ export const agentVoiceChatStream = (
   return {
     stop: () => {
       isStopped = true;
+      stopActiveAudioPlayback();
       if (activeReader) {
         activeReader.cancel().catch(() => { });
       }
@@ -1328,7 +1395,12 @@ export const agentTextChatStream = (
       activeSocket = null;
 
       // ── 2. TTS ────────────────────────────────────────────────
-      if (isStopped || !assistantText) return resolve();
+      if (isStopped || !assistantText) {
+        if (!isStopped) {
+          hideAgentCursor();
+        }
+        return resolve();
+      }
 
       events.onAudioStateChange?.("rendering");
       let ttsResult: TtsCollectResult;
@@ -1357,6 +1429,9 @@ export const agentTextChatStream = (
         events.onAudioStateChange?.("done");
       }
 
+      if (!isStopped) {
+        hideAgentCursor();
+      }
       resolve();
     } catch (err) {
       if (!errorEmitted) {
@@ -1376,6 +1451,7 @@ export const agentTextChatStream = (
   return {
     stop: () => {
       isStopped = true;
+      stopActiveAudioPlayback();
       if (activeReader) activeReader.cancel().catch(() => { });
       if (activeSocket && activeSocket.readyState <= WebSocket.OPEN) {
         activeSocket.close();
@@ -1571,7 +1647,12 @@ export const agentResumeStream = (
       activeSocket = null;
 
       // ── TTS ────────────────────────────────────────────────
-      if (isStopped || !assistantText) return resolve();
+      if (isStopped || !assistantText) {
+        if (!isStopped) {
+          hideAgentCursor();
+        }
+        return resolve();
+      }
 
       console.info(`[Bulut] TTS start mode=resume voice=${resumeState.voice}`);
       events.onAudioStateChange?.("rendering");
@@ -1604,6 +1685,9 @@ export const agentResumeStream = (
         events.onAudioStateChange?.("done");
       }
 
+      if (!isStopped) {
+        hideAgentCursor();
+      }
       resolve();
     } catch (err) {
       if (!errorEmitted) {
@@ -1623,6 +1707,7 @@ export const agentResumeStream = (
   return {
     stop: () => {
       isStopped = true;
+      stopActiveAudioPlayback();
       if (activeReader) activeReader.cancel().catch(() => { });
       if (activeSocket && activeSocket.readyState <= WebSocket.OPEN) {
         activeSocket.close();

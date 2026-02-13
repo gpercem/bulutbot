@@ -413,6 +413,21 @@ const setCursorVisibility = (cursor: HTMLElement, visible: boolean) => {
   cursor.style.opacity = visible ? "1" : "0";
 };
 
+export const hideAgentCursor = (): void => {
+  if (typeof document === "undefined" || typeof window === "undefined") {
+    return;
+  }
+
+  const cursor = document.getElementById(AGENT_CURSOR_ID);
+  if (!(cursor instanceof HTMLElement)) {
+    return;
+  }
+
+  const { x, y } = getCursorPosition(cursor);
+  setCursorVisibility(cursor, false);
+  persistCursorState(x, y, false);
+};
+
 let cursorHoverTrackingInitialized = false;
 const initializeCursorHoverTracking = () => {
   if (cursorHoverTrackingInitialized) {

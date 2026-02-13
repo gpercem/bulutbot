@@ -22,6 +22,7 @@ export interface PageContextSummaryInput {
   links: string[];
   interactables: string[];
   interactionSignals: string[];
+  styleSelectors: string[];
   pageBlueprint: string[];
   textSnippets: string[];
   outerHtmlDigest: string;
@@ -37,6 +38,7 @@ interface PageSignalSnapshot {
   links: string[];
   interactables: string[];
   interactionSignals: string[];
+  styleSelectors: string[];
   pageBlueprint: string[];
 }
 
@@ -45,20 +47,17 @@ import {
   MAX_INTERACTABLES,
   MAX_HEADINGS,
   MAX_TEXT_SNIPPETS,
-  MAX_OUTER_HTML_DIGEST,
   MAX_CACHED_PAGES,
   MAX_PAGE_SCAN_ELEMENTS,
   MAX_EVENT_HINTS_PER_ELEMENT,
   MAX_BRANCH_SAMPLES,
   MAX_BRANCH_DEPTH,
-  MAX_CONTEXT_SUMMARY_CHARS,
-  MAX_CONTEXT_WITH_HISTORY_CHARS,
+  MAX_STYLESHEET_SELECTORS,
+  MAX_STYLESHEET_RULES,
 } from "./contextConfig";
 
-export { MAX_CONTEXT_SUMMARY_CHARS };
-
-export const PAGE_CONTEXT_CACHE_VERSION = 2;
-export const PAGE_CONTEXT_CACHE_KEY = "auticbot_page_context_cache_v2";
+export const PAGE_CONTEXT_CACHE_VERSION = 3;
+export const PAGE_CONTEXT_CACHE_KEY = "auticbot_page_context_cache_v3";
 
 const NON_CONTENT_TAGS = new Set([
   "script",
@@ -144,27 +143,14 @@ const ARIA_INTERACTION_ATTRS = [
 const DATA_INTERACTION_PATTERN =
   /(action|click|press|toggle|target|trigger|nav|open|close|menu|modal|command|submit)/i;
 
+const STYLESHEET_SELECTOR_PATTERN =
+  /(:hover|:focus|:active|button|a\b|input|textarea|select|\[role=|\[aria-|\[data-|\.btn|\.link)/i;
+
 const pageContextCache = new Map<string, CachedPageContextEntry>();
 let cacheHydrated = false;
 
 const normalizeWhitespace = (value: string): string =>
   value.replace(/\s+/g, " ").trim();
-
-const truncate = (value: string, maxChars: number): string => {
-  if (value.length <= maxChars) {
-    return value;
-  }
-
-  const suffix = "\n...[truncated]";
-  return `${value.slice(0, Math.max(0, maxChars - suffix.length))}${suffix}`;
-};
-
-const truncateInline = (value: string, maxChars: number): string => {
-  if (value.length <= maxChars) {
-    return value;
-  }
-  return `${value.slice(0, Math.max(0, maxChars - 3))}...`;
-};
 
 const canonicalUrl = (rawUrl: string): string => {
   try {
@@ -218,9 +204,9 @@ const parseTabIndex = (value: string | null): number | null => {
   return Number.isNaN(parsed) ? null : parsed;
 };
 
-const compactToken = (value: string, maxChars: number = 18): string => {
+const compactToken = (value: string): string => {
   const compact = value.replace(/\s+/g, "-").replace(/[^a-zA-Z0-9_-]/g, "");
-  return compact ? truncateInline(compact, maxChars) : "";
+  return compact || "";
 };
 
 const getElementDepth = (element: Element): number => {
@@ -326,15 +312,12 @@ const buildSummaryWithHistory = (
   const historySection = [
     "Recent Page Memory:",
     ...recentPages.map((entry) => {
-      const compactSummary = normalizeWhitespace(entry.summary).slice(0, 180);
+      const compactSummary = normalizeWhitespace(entry.summary);
       return `- ${entry.url} :: ${compactSummary}`;
     }),
   ].join("\n");
 
-  return truncate(
-    `${current.summary}\n\n${historySection}`,
-    MAX_CONTEXT_WITH_HISTORY_CHARS,
-  );
+  return `${current.summary}\n\n${historySection}`;
 };
 
 const isVisible = (element: Element): boolean => {
@@ -371,26 +354,31 @@ const escapeCssValue = (value: string): string => {
   return value.replace(/([ #;&,.+*~':"!^$\[\]()=>|\/@])/g, "\\$1");
 };
 
-const buildSelector = (element: Element): string => {
+const buildSelectorSegment = (element: Element): string => {
   const tag = element.tagName.toLowerCase();
 
   if (element.id) {
     return `#${escapeCssValue(element.id)}`;
   }
 
-  const name = element.getAttribute("name");
-  if (name) {
-    return `${tag}[name="${escapeCssValue(name)}"]`;
-  }
+  const attrCandidates: Array<[name: string, value: string | null]> = [
+    ["name", element.getAttribute("name")],
+    ["data-testid", element.getAttribute("data-testid")],
+    ["data-test-id", element.getAttribute("data-test-id")],
+    ["aria-label", element.getAttribute("aria-label")],
+    ["role", element.getAttribute("role")],
+    ["type", element.getAttribute("type")],
+  ];
 
-  const ariaLabel = element.getAttribute("aria-label");
-  if (ariaLabel) {
-    return `${tag}[aria-label="${escapeCssValue(ariaLabel)}"]`;
+  for (const [attrName, attrValue] of attrCandidates) {
+    if (attrValue) {
+      return `${tag}[${attrName}="${escapeCssValue(attrValue)}"]`;
+    }
   }
 
   const classes = Array.from(element.classList)
     .filter(Boolean)
-    .slice(0, 2)
+    .slice(0, 3)
     .map((className) => `.${escapeCssValue(className)}`)
     .join("");
   if (classes) {
@@ -407,6 +395,24 @@ const buildSelector = (element: Element): string => {
   );
   const index = siblingsOfTag.indexOf(element) + 1;
   return `${tag}:nth-of-type(${index})`;
+};
+
+const buildSelector = (element: Element): string => {
+  const segments: string[] = [];
+  let cursor: Element | null = element;
+  let depth = 0;
+
+  while (cursor && depth < 4) {
+    const segment = buildSelectorSegment(cursor);
+    segments.unshift(segment);
+    if (segment.startsWith("#")) {
+      break;
+    }
+    cursor = cursor.parentElement;
+    depth += 1;
+  }
+
+  return segments.join(" > ");
 };
 
 const getElementLabel = (element: Element): string => {
@@ -428,7 +434,7 @@ const getElementLabel = (element: Element): string => {
       : "";
 
   const classHint = Array.from(element.classList)
-    .map((item) => compactToken(item, 16))
+    .map((item) => compactToken(item))
     .find(Boolean);
   const fallback =
     (element.id && `#${element.id}`) ||
@@ -483,34 +489,39 @@ const getDataInteractionHints = (element: Element): string[] =>
     .slice(0, 2)
     .map((attrName) => attrName.replace("data-", ""));
 
-const getStyleHints = (style: CSSStyleDeclaration): string[] => {
-  const styleHints: string[] = [];
+const getComputedStyleSignals = (style: CSSStyleDeclaration): string[] => {
+  const signals: string[] = [];
 
-  if (style.cursor === "pointer") {
-    styleHints.push("cursor:pointer");
+  if (style.cursor && style.cursor !== "auto") {
+    signals.push(`cursor:${style.cursor}`);
+  }
+  if (style.display) {
+    signals.push(`display:${style.display}`);
+  }
+  if (style.position) {
+    signals.push(`position:${style.position}`);
+  }
+  if (style.zIndex && style.zIndex !== "auto") {
+    signals.push(`z-index:${style.zIndex}`);
+  }
+  if (style.pointerEvents && style.pointerEvents !== "auto") {
+    signals.push(`pointer-events:${style.pointerEvents}`);
+  }
+  if (style.visibility && style.visibility !== "visible") {
+    signals.push(`visibility:${style.visibility}`);
+  }
+  if (style.opacity && style.opacity !== "1") {
+    signals.push(`opacity:${style.opacity}`);
   }
 
-  if (
-    style.display === "flex" ||
-    style.display === "grid" ||
-    style.display === "inline-flex" ||
-    style.display === "inline-grid"
-  ) {
-    styleHints.push(`display:${style.display}`);
-  }
-
-  if (style.position === "fixed" || style.position === "sticky") {
-    styleHints.push(`position:${style.position}`);
-  }
-
-  return styleHints.slice(0, 2);
+  return Array.from(new Set(signals));
 };
 
 const buildBlueprintToken = (element: Element): string => {
   const tag = element.tagName.toLowerCase();
   const idToken = element.id ? `#${compactToken(element.id)}` : "";
   const classToken = Array.from(element.classList)
-    .map((item) => compactToken(item, 16))
+    .map((item) => compactToken(item))
     .find(Boolean);
 
   return `${tag}${idToken}${classToken ? `.${classToken}` : ""}`;
@@ -546,7 +557,7 @@ const collectDomBranchDigest = (): string[] => {
     .slice(0, MAX_BRANCH_SAMPLES);
 
   return topLevelNodes.map((child) =>
-    truncateInline(buildBranchDigest(child, MAX_BRANCH_DEPTH), 140),
+    buildBranchDigest(child, MAX_BRANCH_DEPTH),
   );
 };
 
@@ -574,7 +585,7 @@ const buildOuterHtmlDigest = (): string => {
     .replace(/\s+/g, " ")
     .trim();
 
-  return truncate(structural, MAX_OUTER_HTML_DIGEST);
+  return structural;
 };
 
 const collectTextSnippets = (): string[] => {
@@ -594,13 +605,12 @@ const collectTextSnippets = (): string[] => {
       continue;
     }
 
-    const compact = truncateInline(text, 180);
-    if (seen.has(compact)) {
+    if (seen.has(text)) {
       continue;
     }
 
-    seen.add(compact);
-    snippets.push(`- ${compact}`);
+    seen.add(text);
+    snippets.push(`- ${text}`);
     if (snippets.length >= MAX_TEXT_SNIPPETS) {
       break;
     }
@@ -636,6 +646,75 @@ const collectLandmarkSnapshot = (): string[] => {
   );
 };
 
+const collectSelectorsFromRuleList = (
+  rules: CSSRuleList,
+  selectors: Set<string>,
+  scanned: { count: number },
+): void => {
+  for (const rule of Array.from(rules)) {
+    if (
+      scanned.count >= MAX_STYLESHEET_RULES ||
+      selectors.size >= MAX_STYLESHEET_SELECTORS
+    ) {
+      return;
+    }
+
+    scanned.count += 1;
+
+    if (rule instanceof CSSStyleRule) {
+      const parts = rule.selectorText
+        .split(",")
+        .map((selector) => normalizeWhitespace(selector))
+        .filter(Boolean);
+
+      for (const selector of parts) {
+        if (!STYLESHEET_SELECTOR_PATTERN.test(selector)) {
+          continue;
+        }
+        selectors.add(selector);
+        if (selectors.size >= MAX_STYLESHEET_SELECTORS) {
+          return;
+        }
+      }
+      continue;
+    }
+
+    if ("cssRules" in rule) {
+      try {
+        const nestedRules = (rule as CSSMediaRule).cssRules;
+        collectSelectorsFromRuleList(nestedRules, selectors, scanned);
+      } catch {
+        // Ignore inaccessible nested rules.
+      }
+    }
+  }
+};
+
+const collectStylesheetSelectors = (): string[] => {
+  const selectors = new Set<string>();
+  const scanned = { count: 0 };
+
+  for (const stylesheet of Array.from(document.styleSheets)) {
+    if (
+      scanned.count >= MAX_STYLESHEET_RULES ||
+      selectors.size >= MAX_STYLESHEET_SELECTORS
+    ) {
+      break;
+    }
+
+    try {
+      if (!stylesheet.cssRules) {
+        continue;
+      }
+      collectSelectorsFromRuleList(stylesheet.cssRules, selectors, scanned);
+    } catch {
+      // Ignore cross-origin stylesheets.
+    }
+  }
+
+  return Array.from(selectors).map((selector) => `- ${selector}`);
+};
+
 const collectPageSignalSnapshot = (): PageSignalSnapshot => {
   const allElements = Array.from(document.querySelectorAll("*"));
   const sampledElements = allElements.slice(0, MAX_PAGE_SCAN_ELEMENTS);
@@ -648,6 +727,7 @@ const collectPageSignalSnapshot = (): PageSignalSnapshot => {
   const eventCounts = new Map<string, number>();
   const displayCounts = new Map<string, number>();
   const positionCounts = new Map<string, number>();
+  const styleSignalCounts = new Map<string, number>();
 
   let visibleElements = 0;
   let maxDepth = 0;
@@ -691,6 +771,11 @@ const collectPageSignalSnapshot = (): PageSignalSnapshot => {
     }
     if (TRACKED_POSITION_VALUES.has(style.position)) {
       bumpCount(positionCounts, style.position);
+    }
+
+    const computedStyleSignals = getComputedStyleSignals(style);
+    for (const styleSignal of computedStyleSignals) {
+      bumpCount(styleSignalCounts, styleSignal);
     }
 
     const eventHints = getEventHints(element);
@@ -742,7 +827,7 @@ const collectPageSignalSnapshot = (): PageSignalSnapshot => {
     ) {
       const absoluteHref = toAbsoluteUrl(href);
       const label = getElementLabel(element) || absoluteHref;
-      const line = `- ${truncateInline(label, 90)} -> ${truncateInline(absoluteHref, 140)}`;
+      const line = `- ${label} -> ${absoluteHref}`;
 
       if (!linkSet.has(line)) {
         linkSet.add(line);
@@ -774,8 +859,8 @@ const collectPageSignalSnapshot = (): PageSignalSnapshot => {
     }
 
     const selector = buildSelector(element);
-    const label = truncateInline(getElementLabel(element), 90);
-    const styleHints = getStyleHints(style);
+    const label = getElementLabel(element);
+    const styleSignals = computedStyleSignals;
     const signalTokens: string[] = [];
 
     if (eventHints.length > 0) {
@@ -793,18 +878,15 @@ const collectPageSignalSnapshot = (): PageSignalSnapshot => {
     if (ariaHints.length > 0) {
       signalTokens.push(`aria:${ariaHints.join("|")}`);
     }
-    if (styleHints.length > 0) {
-      signalTokens.push(`css:${styleHints.join("|")}`);
+    if (styleSignals.length > 0) {
+      signalTokens.push(`css:${styleSignals.join("|")}`);
     } else if (hasPointerCursor) {
       signalTokens.push("css:cursor:pointer");
     }
 
     const signalBlock =
       signalTokens.length > 0 ? ` [${signalTokens.join("; ")}]` : "";
-    const line = truncateInline(
-      `- ${tag} ${selector}${signalBlock} (${label})`,
-      240,
-    );
+    const line = `- ${tag} ${selector}${signalBlock} (${label})`;
 
     const score =
       eventHints.length * 5 +
@@ -838,8 +920,9 @@ const collectPageSignalSnapshot = (): PageSignalSnapshot => {
     `- listener hints: ${formatTopCounts(eventCounts, 8)}`,
     `- interaction cues: tabindex>=0=${tabStopElements}, pointer-cursor=${pointerCursorElements}, data-hints=${dataHintElements}, aria-hints=${ariaHintElements}`,
     `- role hints: ${formatTopCounts(interactiveRoleCounts, 8)}`,
+    `- css footprint: ${formatTopCounts(styleSignalCounts, 10)}`,
     "- listener scope: inline/on* handlers are detected directly; addEventListener handlers are inferred via cues.",
-  ].map((line) => truncateInline(line, 250));
+  ];
 
   const branchDigest = collectDomBranchDigest();
   const pageBlueprint = [
@@ -848,19 +931,19 @@ const collectPageSignalSnapshot = (): PageSignalSnapshot => {
     `- role density: ${formatTopCounts(roleCounts, 8)}`,
     `- layout density: display(${formatTopCounts(displayCounts, 6)}), position(${formatTopCounts(positionCounts, 4)})`,
     `- branch digest: ${branchDigest.length > 0 ? branchDigest.join(" || ") : "none"}`,
-  ].map((line) => truncateInline(line, 260));
+  ];
 
   return {
     links: links.slice(0, MAX_LINKS),
     interactables,
     interactionSignals,
+    styleSelectors: collectStylesheetSelectors(),
     pageBlueprint,
   };
 };
 
 export const buildPageContextSummary = (
   input: PageContextSummaryInput,
-  maxChars: number = MAX_CONTEXT_SUMMARY_CHARS,
 ): string => {
   const sections = [
     formatSection("Meta", [
@@ -871,6 +954,7 @@ export const buildPageContextSummary = (
     formatSection("Headings", input.headings),
     formatSection("Landmark Snapshot", input.landmarks),
     formatSection("Interaction Signals", input.interactionSignals),
+    formatSection("Stylesheet Selector Snapshot", input.styleSelectors),
     formatSection("Compressed Page Blueprint", input.pageBlueprint),
     formatSection("Top Links", input.links),
     formatSection("Top Interactables", input.interactables),
@@ -880,7 +964,7 @@ export const buildPageContextSummary = (
     ]),
   ];
 
-  return truncate(sections.join("\n\n"), maxChars);
+  return sections.join("\n\n");
 };
 
 export const clearPageContextCache = (): void => {
@@ -925,7 +1009,7 @@ export const getPageContext = (): PageContext => {
   const headings = Array.from(document.querySelectorAll("h1, h2, h3"))
     .filter((element) => isVisible(element))
     .map((element) =>
-      `- ${truncateInline(normalizeWhitespace(element.textContent || ""), 120)}`,
+      `- ${normalizeWhitespace(element.textContent || "")}`,
     )
     .filter((line) => line !== "- ")
     .slice(0, MAX_HEADINGS);
@@ -939,6 +1023,7 @@ export const getPageContext = (): PageContext => {
     links: snapshot.links,
     interactables: snapshot.interactables,
     interactionSignals: snapshot.interactionSignals,
+    styleSelectors: snapshot.styleSelectors,
     pageBlueprint: snapshot.pageBlueprint,
     textSnippets: collectTextSnippets(),
     outerHtmlDigest: buildOuterHtmlDigest(),

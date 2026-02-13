@@ -6,8 +6,10 @@ import {
   parseSttWsEventPayload,
   parseTtsWsEventPayload,
   parseSseEventPayload,
+  getAudioPlaybackGeneration,
   shouldAcceptAudioSeq,
   shouldFallbackToSse,
+  stopActiveAudioPlayback,
 } from "./client";
 
 describe("parseSseEventPayload", () => {
@@ -116,5 +118,15 @@ describe("stt websocket helpers", () => {
   it("returns null for invalid payloads", () => {
     expect(parseSttWsEventPayload("{invalid")).toBeNull();
     expect(parseSttWsEventPayload(123)).toBeNull();
+  });
+});
+
+describe("audio playback stop helpers", () => {
+  it("bumps playback generation when stop is requested", () => {
+    const before = getAudioPlaybackGeneration();
+    stopActiveAudioPlayback();
+    const after = getAudioPlaybackGeneration();
+
+    expect(after).toBe(before + 1);
   });
 });
