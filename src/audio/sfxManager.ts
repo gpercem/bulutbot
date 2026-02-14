@@ -14,6 +14,8 @@ const SFX_SOURCES: Record<SfxName, string> = {
   completed: completedSfxUrl,
 };
 
+const SFX_VOLUME = 0.5;
+
 class SfxManager {
   private queue: SfxName[] = [];
   private active = false;
@@ -27,6 +29,7 @@ class SfxManager {
 
       const audio = new Audio(SFX_SOURCES[name]);
       audio.preload = "auto";
+      audio.volume = SFX_VOLUME;
 
       let settled = false;
       const finalize = () => {
@@ -71,4 +74,3 @@ const sfxManager = new SfxManager();
 export const playCue = (name: SfxName): void => {
   sfxManager.playCue(name);
 };
-
