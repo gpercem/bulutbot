@@ -1180,6 +1180,10 @@ export const agentVoiceChatStream = (
         );
       }
 
+      if (!isStopped) {
+        hideAgentCursor();
+      }
+
       if (!isStopped && ttsResult.chunks.length > 0) {
         await playBufferedAudio(
           ttsResult.chunks,
@@ -1191,9 +1195,6 @@ export const agentVoiceChatStream = (
         events.onAudioStateChange?.("done");
       }
 
-      if (!isStopped) {
-        hideAgentCursor();
-      }
       resolve();
     } catch (err) {
       // Only emit onError if it hasn't been emitted already by the WS handler
@@ -1420,6 +1421,10 @@ export const agentTextChatStream = (
         );
       }
 
+      if (!isStopped) {
+        hideAgentCursor();
+      }
+
       if (!isStopped && ttsResult.chunks.length > 0) {
         await playBufferedAudio(
           ttsResult.chunks, ttsResult.mimeType, ttsResult.sampleRate,
@@ -1429,9 +1434,6 @@ export const agentTextChatStream = (
         events.onAudioStateChange?.("done");
       }
 
-      if (!isStopped) {
-        hideAgentCursor();
-      }
       resolve();
     } catch (err) {
       if (!errorEmitted) {
@@ -1676,6 +1678,10 @@ export const agentResumeStream = (
         );
       }
 
+      if (!isStopped) {
+        hideAgentCursor();
+      }
+
       if (!isStopped && ttsResult.chunks.length > 0) {
         await playBufferedAudio(
           ttsResult.chunks, ttsResult.mimeType, ttsResult.sampleRate,
@@ -1685,9 +1691,6 @@ export const agentResumeStream = (
         events.onAudioStateChange?.("done");
       }
 
-      if (!isStopped) {
-        hideAgentCursor();
-      }
       resolve();
     } catch (err) {
       if (!errorEmitted) {

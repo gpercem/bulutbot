@@ -32,14 +32,22 @@ import {
   SHADOW,
 } from "../styles/constants";
 import {
-  closeIconContent,
-  microphoneIconContent,
-  stopIconContent,
-  restartIconContent,
   logoContent,
 } from "../assets";
 import { StreamingJsonParser } from "../utils/streamingJson";
 import { playCue, type SfxName } from "../audio/sfxManager";
+import {
+  ArrowPathIcon,
+  CommandLineIcon,
+  CursorArrowRaysIcon,
+  FaceSmileIcon,
+  HandRaisedIcon,
+  MapIcon,
+  MicrophoneIcon,
+  QueueListIcon,
+  StopIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 
 import { SvgIcon } from "./SvgIcon";
 
@@ -67,6 +75,9 @@ interface Message {
   isUser: boolean;
   /** "message" (default) | "tool" for tool call indicators */
   type?: "message" | "tool";
+  toolKind?: "context" | "cursor" | "scroll" | "navigate" | "form" | "interact" | "unknown";
+  toolLabel?: string;
+  toolCount?: number;
 }
 
 type RecordingMode = "vad" | "press";
@@ -88,7 +99,7 @@ const STATUS_LABELS = {
   ready: "Hazır",
   loading: "Yükleniyor",
   listening: "Dinliyor",
-  accessibilityActive: "erişilebilirlik aktif",
+  accessibilityActive: "Erişilebilirlik Aktif",
   transcribing: "Metne dönüştürülüyor",
   thinking: "Düşünüyor",
   playingAudio: "Ses oynatılıyor",
@@ -213,6 +224,48 @@ export const shouldAcceptVadSpeech = (
   enforceMinSpeechDuration: boolean,
   minSpeechDurationMs: number = ACCESSIBILITY_MIN_SPEECH_DURATION_MS,
 ): boolean => !enforceMinSpeechDuration || speechDurationMs >= minSpeechDurationMs;
+
+interface ToolIndicatorMessage {
+  text: string;
+  kind: "context" | "cursor" | "scroll" | "navigate" | "form" | "interact" | "unknown";
+}
+
+const getToolIndicatorMessage = (
+  call: AgentToolCallInfo,
+): ToolIndicatorMessage => {
+  if (call.tool === "getPageContext") {
+    return { text: "Algılama", kind: "context" };
+  }
+  if (call.tool === "scroll") {
+    return { text: "Kaydırma", kind: "scroll" };
+  }
+  if (call.tool === "navigate") {
+    const url = typeof call.args.url === "string" ? call.args.url.trim() : "";
+    return {
+      text: url ? `Sayfa Geçişi: ${url}` : "Sayfa Geçişi",
+      kind: "navigate",
+    };
+  }
+  if (call.tool === "interact" && call.args.action === "move") {
+    return { text: "Serbest İmleç", kind: "cursor" };
+  }
+  if (call.tool === "interact" && call.args.action === "type") {
+    return { text: "Form Doldurma", kind: "form" };
+  }
+  if (call.tool === "interact" && call.args.action === "submit") {
+    return { text: "Form Gönderme", kind: "form" };
+  }
+  if (call.tool === "interact" && call.args.action === "click") {
+    return { text: "Tıklama", kind: "interact" };
+  }
+  if (call.tool === "interact") {
+    return { text: "Etkileşim", kind: "interact" };
+  }
+  return {
+    text: call.tool || "Araç",
+    kind: "unknown",
+  };
+};
 
 export const ChatWindow = ({
   onClose,
@@ -570,6 +623,7 @@ export const ChatWindow = ({
 
     const requestEpoch = beginRequestEpoch();
     setIsBusy(true);
+    isBusyRef.current = true;
     setIsRunningTools(true);
     setStatusOverride(STATUS_LABELS.thinking);
 
@@ -657,31 +711,7 @@ export const ChatWindow = ({
           }
           setIsRunningTools(true);
           setStatusOverride(STATUS_LABELS.runningTools);
-
-          for (const call of calls) {
-            const toolLabel =
-              call.tool === "navigate"
-                ? `Sayfaya gidiliyor: ${call.args.url ?? ""}`
-                : call.tool === "getPageContext"
-                  ? "Sayfa bağlamı alınıyor…"
-                  : call.tool === "interact"
-                    ? `Etkileşim: ${call.args.action ?? ""}`
-                    : call.tool === "scroll"
-                      ? "Kaydırılıyor…"
-                      : call.tool;
-
-            appendMessage(`${toolLabel}`, false);
-            setMessages((prev) => {
-              const last = prev[prev.length - 1];
-              if (last && !last.isUser) {
-                return [
-                  ...prev.slice(0, -1),
-                  { ...last, type: "tool" as const },
-                ];
-              }
-              return prev;
-            });
-          }
+          appendToolIndicatorMessages(calls);
 
           assistantMessageIdRef.current = null;
           pendingAssistantTextRef.current = "";
@@ -712,6 +742,7 @@ export const ChatWindow = ({
       .finally(() => {
         if (!isCurrentRequestEpoch(requestEpoch)) return;
         setIsBusy(false);
+        isBusyRef.current = false;
         setIsRunningTools(false);
         setIsThinking(false);
         setIsRenderingAudio(false);
@@ -726,7 +757,7 @@ export const ChatWindow = ({
           shouldAutoListenAfterAudio(
             accessibilityMode,
             isRecordingRef.current,
-            isBusyRef.current,
+            false,
           )
         ) {
           void startRecording("vad");
@@ -734,7 +765,16 @@ export const ChatWindow = ({
       });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const appendMessage = (text: string, isUser: boolean): number => {
+  const appendMessage = (
+    text: string,
+    isUser: boolean,
+    options?: {
+      type?: "message" | "tool";
+      toolKind?: Message["toolKind"];
+      toolLabel?: string;
+      toolCount?: number;
+    },
+  ): number => {
     const id = nextMessageIdRef.current++;
     setMessages((previous) => [
       ...previous,
@@ -742,9 +782,62 @@ export const ChatWindow = ({
         id,
         text,
         isUser,
+        type: options?.type,
+        toolKind: options?.toolKind,
+        toolLabel: options?.toolLabel,
+        toolCount: options?.toolCount,
       },
     ]);
     return id;
+  };
+
+  const appendToolIndicatorMessages = (calls: AgentToolCallInfo[]) => {
+    setMessages((previous) => {
+      const next = [...previous];
+
+      for (const call of calls) {
+        const indicator = getToolIndicatorMessage(call);
+        const last = next[next.length - 1];
+        const previousToolText = typeof last?.text === "string"
+          ? last.text.replace(/\s+\(\d+\)$/, "")
+          : "";
+
+        if (
+          last
+          && !last.isUser
+          && last.type === "tool"
+          && previousToolText === indicator.text
+        ) {
+          const extractedCount = Number.parseInt(
+            (last.text.match(/\((\d+)\)\s*$/)?.[1] ?? "1"),
+            10,
+          );
+          const safeCurrentCount = Number.isFinite(extractedCount) ? extractedCount : 1;
+          const nextCount = safeCurrentCount + 1;
+          const baseLabel = previousToolText || indicator.text;
+          next[next.length - 1] = {
+            ...last,
+            toolLabel: baseLabel,
+            toolCount: nextCount,
+            text: `${baseLabel} (${nextCount})`,
+          };
+          continue;
+        }
+
+        const id = nextMessageIdRef.current++;
+        next.push({
+          id,
+          text: indicator.text,
+          isUser: false,
+          type: "tool",
+          toolKind: indicator.kind,
+          toolLabel: indicator.text,
+          toolCount: 1,
+        });
+      }
+
+      return next;
+    });
   };
 
   const updateMessageText = (id: number, text: string) => {
@@ -814,6 +907,7 @@ export const ChatWindow = ({
     awaitingAssistantResponseRef.current = false;
     setStatusOverride(null);
     setIsBusy(false);
+    isBusyRef.current = false;
     setIsTranscribing(false);
     setIsThinking(false);
     setIsRenderingAudio(false);
@@ -830,7 +924,7 @@ export const ChatWindow = ({
       shouldAutoListenAfterAudio(
         accessibilityMode,
         isRecordingRef.current,
-        isBusyRef.current,
+        false,
       )
     ) {
       console.info("[Bulut] chat-window auto-listen trigger after stream completion");
@@ -852,6 +946,7 @@ export const ChatWindow = ({
 
     const requestEpoch = beginRequestEpoch();
     setIsBusy(true);
+    isBusyRef.current = true;
     setIsTranscribing(false);
     setIsThinking(true);
     setIsRenderingAudio(false);
@@ -965,31 +1060,7 @@ export const ChatWindow = ({
             }
             setIsRunningTools(true);
             setStatusOverride(STATUS_LABELS.runningTools);
-
-            for (const call of calls) {
-              const toolLabel =
-                call.tool === "navigate"
-                  ? `Sayfaya gidiliyor: ${call.args.url ?? ""}`
-                  : call.tool === "getPageContext"
-                    ? "Sayfa bağlamı alınıyor…"
-                    : call.tool === "interact"
-                      ? `Etkileşim: ${call.args.action ?? ""}`
-                      : call.tool === "scroll"
-                        ? "Kaydırılıyor…"
-                        : call.tool;
-
-              appendMessage(`${toolLabel}`, false);
-              setMessages((prev) => {
-                const last = prev[prev.length - 1];
-                if (last && !last.isUser) {
-                  return [
-                    ...prev.slice(0, -1),
-                    { ...last, type: "tool" as const },
-                  ];
-                }
-                return prev;
-              });
-            }
+            appendToolIndicatorMessages(calls);
 
             assistantMessageIdRef.current = null;
             pendingAssistantTextRef.current = "";
@@ -1036,6 +1107,7 @@ export const ChatWindow = ({
 
     const requestEpoch = beginRequestEpoch();
     setIsBusy(true);
+    isBusyRef.current = true;
     setIsTranscribing(true);
     setIsThinking(false);
     setIsRenderingAudio(false);
@@ -1193,35 +1265,7 @@ export const ChatWindow = ({
             }
             setIsRunningTools(true);
             setStatusOverride(STATUS_LABELS.runningTools);
-
-            // Show each tool call as a small indicator message
-            for (const call of calls) {
-              const toolLabel =
-                call.tool === "navigate"
-                  ? `Sayfaya gidiliyor: ${call.args.url ?? ""}`
-                  : call.tool === "getPageContext"
-                    ? "Sayfa bağlamı alınıyor…"
-                    : call.tool === "interact"
-                      ? `Etkileşim: ${call.args.action ?? ""}`
-                      : call.tool === "scroll"
-                        ? "Kaydırılıyor…"
-                        : call.tool;
-
-              appendMessage(`${toolLabel}`, false);
-              // Mark the tool message
-              setMessages((prev) => {
-                const last = prev[prev.length - 1];
-                if (last && !last.isUser) {
-                  return [
-                    ...prev.slice(0, -1),
-                    { ...last, type: "tool" as const },
-                  ];
-                }
-                return prev;
-              });
-            }
-
-            // Reset assistant message ref so next reply gets a new bubble
+            appendToolIndicatorMessages(calls);
             assistantMessageIdRef.current = null;
             pendingAssistantTextRef.current = "";
           },
@@ -1721,6 +1765,7 @@ export const ChatWindow = ({
     stopStreamTracks();
     resetProcessingFlags();
     setIsBusy(false);
+    isBusyRef.current = false;
   };
 
   // Expose recording actions to parent via actionsRef
@@ -1759,7 +1804,7 @@ export const ChatWindow = ({
     zIndex: "10000",
     animation: hidden ? "none" : `slideIn ${TRANSITIONS.medium}`,
     boxShadow: accessibilityMode
-      ? `inset 0 0 0 1px ${COLORS.primary}, ${SHADOW}`
+      ? `inset 0 0 0 2px ${COLORS.primary}, ${SHADOW}`
       : SHADOW,
     fontFamily: "\"Geist\", sans-serif",
   };
@@ -1815,6 +1860,28 @@ export const ChatWindow = ({
     backgroundColor: isUser ? COLORS.messageUser : "",
     color: isUser ? COLORS.messageUserText : "hsla(215, 100%, 5%, 1)",
   });
+
+  const resolveToolIcon = (kind: Message["toolKind"]) => {
+    if (kind === "cursor") {
+      return CursorArrowRaysIcon;
+    }
+    if (kind === "scroll") {
+      return HandRaisedIcon;
+    }
+    if (kind === "navigate") {
+      return MapIcon;
+    }
+    if (kind === "form") {
+      return QueueListIcon;
+    }
+    if (kind === "interact") {
+      return HandRaisedIcon;
+    }
+    if (kind === "unknown") {
+      return CommandLineIcon;
+    }
+    return FaceSmileIcon;
+  };
 
   const footerStyle: { [key: string]: string } = {
     padding: "10px 12px",
@@ -1955,7 +2022,7 @@ export const ChatWindow = ({
             aria-label="Sohbeti yeniden başlat"
             title="Sohbeti yeniden başlat"
           >
-            <SvgIcon src={restartIconContent} width={22} />
+            <ArrowPathIcon aria-hidden="true" width={22} height={22} />
           </button>
 
           <button
@@ -1971,40 +2038,44 @@ export const ChatWindow = ({
             aria-label="Sohbeti kapat"
             title="Sohbeti kapat"
           >
-            <SvgIcon
-              fill-opacity={"0"}
-              stroke={"currentColor"}
-              src={closeIconContent}
-              width={22}
-            />
+            <XMarkIcon aria-hidden="true" width={22} height={22} />
           </button>
         </div>
       </div>
 
       <div style={messagesContainerStyle} ref={messagesContainerRef}>
         <div style={messagesListStyle} ref={messagesContentRef}>
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              style={
-                message.type === "tool"
-                  ? {
-                      padding: "9px 14px",
-                      fontSize: "14px",
-                      lineHeight: "1.4",
-                      color: "hsla(215, 100%, 5%, 1)",
-                      fontWeight: 600,
-                      backgroundColor: "hsla(215, 100%, 5%, 0.05)",
-                      borderRadius: "10px",
-                      alignSelf: "flex-start",
-                      maxWidth: "84%",
-                    }
-                  : messageStyle(message.isUser)
-              }
-            >
-              {message.text}
-            </div>
-          ))}
+          {messages.map((message) => {
+            if (message.type === "tool") {
+              const ToolIcon = resolveToolIcon(message.toolKind);
+              return (
+                <div
+                  key={message.id}
+                  style={{
+                    ...messageStyle(false),
+                    opacity: "0.7",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <ToolIcon
+                    aria-hidden="true"
+                    width={20}
+                    height={20}
+                    style={{ flexShrink: "0" }}
+                  />
+                  <span>{message.text}</span>
+                </div>
+              );
+            }
+
+            return (
+              <div key={message.id} style={messageStyle(message.isUser)}>
+                {message.text}
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -2089,11 +2160,11 @@ export const ChatWindow = ({
               aria-label="Görevi durdur"
               title="Görevi durdur"
             >
-              <SvgIcon
-                fill-opacity={"0"}
-                stroke={"hsla(215, 100%, 5%, 1)"}
-                src={stopIconContent}
+              <StopIcon
+                aria-hidden="true"
                 width={22}
+                height={22}
+                style={{ color: "hsla(215, 100%, 5%, 1)" }}
               />
             </button>
           ) : (
@@ -2114,12 +2185,21 @@ export const ChatWindow = ({
                     : "Dokun: VAD, Basılı tut: bırakınca gönder"
               }
             >
-              <SvgIcon
-                fill-opacity={"0"}
-                stroke={"hsla(215, 100%, 5%, 1)"}
-                src={isVadRecording ? closeIconContent : microphoneIconContent}
-                width={22}
-              />
+              {isVadRecording ? (
+                <XMarkIcon
+                  aria-hidden="true"
+                  width={22}
+                  height={22}
+                  style={{ color: "hsla(215, 100%, 5%, 1)" }}
+                />
+              ) : (
+                <MicrophoneIcon
+                  aria-hidden="true"
+                  width={22}
+                  height={22}
+                  style={{ color: "hsla(215, 100%, 5%, 1)" }}
+                />
+              )}
             </button>
           )}
         </div>

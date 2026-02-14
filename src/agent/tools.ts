@@ -2,11 +2,11 @@ import { getPageContext } from "./context";
 import { COLORS } from "../styles/constants";
 
 const AGENT_CURSOR_ID = "auticbot-agent-cursor";
-const CURSOR_STORAGE_KEY = "auticbot_agent_cursor_state";
 export const CURSOR_MOVE_DURATION_MS = 900;
 export const SCROLL_DURATION_MS = 900;
 const CURSOR_EASING = "cubic-bezier(0.4, 0, 0.2, 1)";
 const CURSOR_HOVER_RADIUS_PX = 14;
+const CURSOR_DIAMETER_PX = 25;
 
 // ── Pending Agent Resume State (survives page reloads) ──────────────
 
@@ -63,13 +63,6 @@ export const clearPendingAgentResume = (): void => {
   if (typeof localStorage === "undefined") return;
   localStorage.removeItem(RESUME_STORAGE_KEY);
 };
-
-interface PersistedCursorState {
-  url: string;
-  x: number;
-  y: number;
-  visible: boolean;
-}
 
 type InteractAction = "move" | "click" | "type" | "submit";
 
@@ -348,57 +341,6 @@ export const animateWindowScrollTo = async (
   });
 };
 
-const getPersistedCursorState = (): PersistedCursorState | null => {
-  if (typeof localStorage === "undefined") {
-    return null;
-  }
-
-  try {
-    const raw = localStorage.getItem(CURSOR_STORAGE_KEY);
-    if (!raw) {
-      return null;
-    }
-
-    const parsed = JSON.parse(raw) as Partial<PersistedCursorState>;
-    if (
-      typeof parsed.url !== "string" ||
-      typeof parsed.x !== "number" ||
-      !Number.isFinite(parsed.x) ||
-      typeof parsed.y !== "number" ||
-      !Number.isFinite(parsed.y)
-    ) {
-      return null;
-    }
-
-    return {
-      url: parsed.url,
-      x: parsed.x,
-      y: parsed.y,
-      visible: parsed.visible !== false,
-    };
-  } catch {
-    return null;
-  }
-};
-
-const persistCursorState = (x: number, y: number, visible: boolean) => {
-  if (typeof localStorage === "undefined") {
-    return;
-  }
-
-  try {
-    const payload: PersistedCursorState = {
-      url: window.location.href,
-      x,
-      y,
-      visible,
-    };
-    localStorage.setItem(CURSOR_STORAGE_KEY, JSON.stringify(payload));
-  } catch {
-    // No-op: localStorage may be unavailable or blocked.
-  }
-};
-
 const setCursorPosition = (cursor: HTMLElement, x: number, y: number) => {
   cursor.style.left = `${x}px`;
   cursor.style.top = `${y}px`;
@@ -413,6 +355,68 @@ const setCursorVisibility = (cursor: HTMLElement, visible: boolean) => {
   cursor.style.opacity = visible ? "1" : "0";
 };
 
+const isVisibleElement = (element: HTMLElement): boolean => {
+  const style = window.getComputedStyle(element);
+  return style.display !== "none" && style.visibility !== "hidden" && style.opacity !== "0";
+};
+
+const getBulutShadowRoots = (): ShadowRoot[] => {
+  const roots: ShadowRoot[] = [];
+
+  const defaultHost = document.getElementById("bulut-container");
+  if (defaultHost?.shadowRoot) {
+    roots.push(defaultHost.shadowRoot);
+  }
+
+  const allElements = document.querySelectorAll<HTMLElement>("*");
+  for (const el of allElements) {
+    if (!el.shadowRoot) {
+      continue;
+    }
+    if (!roots.includes(el.shadowRoot)) {
+      roots.push(el.shadowRoot);
+    }
+  }
+
+  return roots;
+};
+
+const findAgentUiAnchorElement = (): HTMLElement | null => {
+  const roots = getBulutShadowRoots();
+
+  for (const root of roots) {
+    const panel = root.querySelector<HTMLElement>(".bulut-chat-window");
+    if (panel && isVisibleElement(panel)) {
+      return panel;
+    }
+  }
+
+  for (const root of roots) {
+    const button = root.querySelector<HTMLElement>(".bulut-fab-container");
+    if (button && isVisibleElement(button)) {
+      return button;
+    }
+  }
+
+  return null;
+};
+
+const getAgentWindowTopLeft = (): { x: number; y: number } => {
+  const anchor = findAgentUiAnchorElement();
+  if (!anchor) {
+    return {
+      x: CURSOR_DIAMETER_PX / 2,
+      y: CURSOR_DIAMETER_PX / 2,
+    };
+  }
+
+  const rect = anchor.getBoundingClientRect();
+  return {
+    x: rect.left + window.scrollX + CURSOR_DIAMETER_PX / 2,
+    y: rect.top + window.scrollY + CURSOR_DIAMETER_PX / 2,
+  };
+};
+
 export const hideAgentCursor = (): void => {
   if (typeof document === "undefined" || typeof window === "undefined") {
     return;
@@ -423,9 +427,7 @@ export const hideAgentCursor = (): void => {
     return;
   }
 
-  const { x, y } = getCursorPosition(cursor);
   setCursorVisibility(cursor, false);
-  persistCursorState(x, y, false);
 };
 
 let cursorHoverTrackingInitialized = false;
@@ -452,19 +454,8 @@ const initializeCursorHoverTracking = () => {
 
     if (distance <= CURSOR_HOVER_RADIUS_PX) {
       setCursorVisibility(cursor, false);
-      persistCursorState(x, y, false);
     }
   });
-};
-
-const applyStoredCursorStateForCurrentUrl = (cursor: HTMLElement) => {
-  const stored = getPersistedCursorState();
-  if (!stored || stored.url !== window.location.href) {
-    return;
-  }
-
-  setCursorPosition(cursor, stored.x, stored.y);
-  setCursorVisibility(cursor, stored.visible);
 };
 
 const ensureCursor = (): HTMLElement => {
@@ -479,10 +470,11 @@ const ensureCursor = (): HTMLElement => {
   const cursor = document.createElement("div");
   cursor.id = AGENT_CURSOR_ID;
   cursor.style.position = "absolute";
-  cursor.style.left = "0px";
-  cursor.style.top = "0px";
+  const startPosition = getAgentWindowTopLeft();
+  cursor.style.left = `${startPosition.x}px`;
+  cursor.style.top = `${startPosition.y}px`;
   cursor.style.opacity = "0";
-  const width = 25;
+  const width = CURSOR_DIAMETER_PX;
   cursor.style.width = `${width}px`;
   cursor.style.height = `${width}px`;
   cursor.style.borderRadius = "50%";
@@ -498,16 +490,32 @@ const ensureCursor = (): HTMLElement => {
   cursor.style.transition = `left ${CURSOR_MOVE_DURATION_MS}ms ${CURSOR_EASING}, top ${CURSOR_MOVE_DURATION_MS}ms ${CURSOR_EASING}, opacity 150ms ease-out`;
   document.body.appendChild(cursor);
   initializeCursorHoverTracking();
-  applyStoredCursorStateForCurrentUrl(cursor);
   console.info(`[Autic] cursor created color=${baseColor} duration=${CURSOR_MOVE_DURATION_MS}ms`);
   return cursor;
 };
 
+const waitForNextAnimationFrame = async (): Promise<void> => {
+  const raf =
+    window.requestAnimationFrame ||
+    ((callback: FrameRequestCallback) => window.setTimeout(() => callback(performance.now()), 16));
+  await new Promise<void>((resolve) => {
+    raf(() => resolve());
+  });
+};
+
 const moveCursor = async (x: number, y: number) => {
   const cursor = ensureCursor();
-  setCursorPosition(cursor, x, y);
+  if (cursor.dataset.transitionReady !== "true") {
+    cursor.dataset.transitionReady = "true";
+    await waitForNextAnimationFrame();
+  }
+
+  const startPosition = getAgentWindowTopLeft();
   setCursorVisibility(cursor, true);
-  persistCursorState(x, y, true);
+  setCursorPosition(cursor, startPosition.x, startPosition.y);
+  await new Promise((resolve) => setTimeout(resolve, CURSOR_MOVE_DURATION_MS));
+
+  setCursorPosition(cursor, x, y);
   await new Promise((resolve) => setTimeout(resolve, CURSOR_MOVE_DURATION_MS));
 };
 
@@ -596,11 +604,31 @@ const dispatchMouseEvent = (
   );
 };
 
+const setNativeInputLikeValue = (
+  element: HTMLInputElement | HTMLTextAreaElement,
+  text: string,
+) => {
+  const prototype =
+    element instanceof HTMLTextAreaElement
+      ? HTMLTextAreaElement.prototype
+      : HTMLInputElement.prototype;
+  const descriptor = Object.getOwnPropertyDescriptor(prototype, "value");
+  if (descriptor?.set) {
+    descriptor.set.call(element, text);
+  } else {
+    element.value = text;
+  }
+
+  // Keep both current and default values aligned so client re-focus
+  // does not appear to "erase" tool-filled form fields.
+  element.defaultValue = text;
+  element.setAttribute("value", text);
+};
+
 const typeIntoElement = (element: HTMLElement, text: string) => {
-  const tagName = element.tagName.toUpperCase();
-  if (tagName === "INPUT" || tagName === "TEXTAREA") {
-    (element as HTMLInputElement).focus();
-    (element as HTMLInputElement).value = text;
+  if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
+    element.focus();
+    setNativeInputLikeValue(element, text);
     element.dispatchEvent(new Event("input", { bubbles: true }));
     element.dispatchEvent(new Event("change", { bubbles: true }));
     return;
@@ -1004,26 +1032,3 @@ export const executeSingleToolCall = async (
     return { call_id: callId, result: `Hata: ${msg}` };
   }
 };
-
-const restoreCursorFromStorageForCurrentUrl = () => {
-  if (typeof document === "undefined" || typeof window === "undefined") {
-    return;
-  }
-
-  const stored = getPersistedCursorState();
-  if (!stored || stored.url !== window.location.href) {
-    return;
-  }
-
-  ensureCursor();
-};
-
-if (typeof document !== "undefined") {
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", restoreCursorFromStorageForCurrentUrl, {
-      once: true,
-    });
-  } else {
-    restoreCursorFromStorageForCurrentUrl();
-  }
-}

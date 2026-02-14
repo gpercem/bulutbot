@@ -6,10 +6,8 @@ import {
   SHADOW,
   TRANSITIONS,
   BORDER_RADIUS,
-  getContrastIconFilter,
 } from "../styles/constants";
-import { closeIconContent, microphoneIconContent, stopIconContent } from "../assets";
-import { SvgIcon } from "./SvgIcon";
+import { MicrophoneIcon, StopIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 interface ChatButtonProps {
   onMicClick: () => void;
@@ -40,7 +38,7 @@ export const ChatButton = ({
 }: ChatButtonProps) => {
   const bgColor = COLORS.primary;
   const popupBoxShadow = accessibilityMode
-    ? `inset 0 0 0 1px ${COLORS.primary}, ${SHADOW}`
+    ? `inset 0 0 0 2px ${COLORS.primary}, ${SHADOW}`
     : SHADOW;
 
   const containerStyle: { [key: string]: string } = {
@@ -83,10 +81,10 @@ export const ChatButton = ({
     width: "24px",
     height: "24px",
     display: "block",
-    filter: getContrastIconFilter(bgColor),
   };
 
   const showStopButton = isBusy && !isRecording;
+  const MainIcon = showStopButton ? StopIcon : isRecording ? XMarkIcon : MicrophoneIcon;
 
   const handleClick = () => {
     if (showStopButton) {
@@ -141,12 +139,7 @@ export const ChatButton = ({
           }}
           aria-label="Kapat"
         >
-          <SvgIcon
-            strokeWidth={3}
-            src={closeIconContent}
-            stroke={"currentColor"}
-            height={14}
-          />
+          <XMarkIcon aria-hidden="true" width={14} height={14} strokeWidth={3} />
         </button>
       )}
 
@@ -263,12 +256,10 @@ export const ChatButton = ({
             }}
             aria-label={showStopButton ? "Görevi durdur" : isRecording ? "Kaydı iptal et" : "Konuşmaya başla"}
           >
-            <SvgIcon
-              src={showStopButton ? stopIconContent : isRecording ? closeIconContent : microphoneIconContent}
+            <MainIcon
               aria-hidden="true"
-              fill-opacity={0}
-              stroke={"currentColor"}
               style={iconStyle}
+              strokeWidth={2.25}
             />
           </button>
         </div>
