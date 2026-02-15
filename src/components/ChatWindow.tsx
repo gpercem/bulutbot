@@ -2033,12 +2033,29 @@ export const ChatWindow = ({
       `}</style>
 
       <div style={headerStyle}>
-        <SvgIcon
-          src={logoContent}
-          title="Bulut Logo"
-          style={{ maxWidth: "80px", height: "auto" }}
-          stripColors={false}
-        />
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <SvgIcon
+            src={logoContent}
+            title="Bulut Logo"
+            style={{ width: "80px", minWidth: "80px", height: "auto", flexShrink: 0 }}
+            stripColors={false}
+          />
+          <span
+            style={{
+              marginTop: "7px",
+              fontSize: "9px",
+              color: COLORS.textSecondary,
+              opacity: 0.45,
+              fontWeight: 400,
+              letterSpacing: "0.02em",
+              userSelect: "none",
+              whiteSpace: "nowrap",
+              alignSelf: "flex-end",
+            }}
+          >
+            v{typeof __BULUT_VERSION__ !== "undefined" ? __BULUT_VERSION__ : ""}
+          </span>
+        </div>
         <div style={headerActionsStyle}>
           <button
             type="button"

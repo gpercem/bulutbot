@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import preact from '@preact/preset-vite';
+import pkg from './package.json' with { type: 'json' };
 
 export default defineConfig({
   plugins: [
@@ -53,5 +54,6 @@ export default defineConfig({
   },
   define: {
     'process.env.NODE_ENV': '"production"',
+    '__BULUT_VERSION__': JSON.stringify(pkg.version),
   },
 });

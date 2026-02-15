@@ -522,23 +522,61 @@ const collectSemanticElements = (): SemanticScanResult => {
   };
 };
 
+const TEXT_CONTENT_SELECTOR = [
+  "p", "li", "h1", "h2", "h3", "h4", "h5", "h6",
+  "blockquote", "figcaption", "dd", "dt", "td", "th",
+  "pre", "label", "caption",
+].join(", ");
+
+/**
+ * Check if an element has meaningful direct text content
+ * (text nodes that aren't just whitespace).
+ */
+const hasDirectText = (element: Element): boolean => {
+  for (const child of Array.from(element.childNodes)) {
+    if (child.nodeType === Node.TEXT_NODE) {
+      const trimmed = (child.textContent || "").trim();
+      if (trimmed.length >= 10) return true;
+    }
+  }
+  return false;
+};
+
 const collectTextSnippets = (): string[] => {
   const root =
     document.querySelector("main, article, [role='main']") ?? document.body;
   const snippets: string[] = [];
   const seen = new Set<string>();
 
-  const candidates = Array.from(root.querySelectorAll("p, li, h1, h2, h3"));
-  for (const node of candidates) {
-    if (!isVisible(node)) continue;
-
-    const text = normalizeWhitespace(node.textContent || "");
-    if (!text || text.length < 20) continue;
-    if (seen.has(text)) continue;
-
+  const addSnippet = (raw: string): boolean => {
+    if (!raw || raw.length < 15) return false;
+    const text = raw.length > 300 ? raw.substring(0, 300) + "…" : raw;
+    if (seen.has(text)) return false;
     seen.add(text);
     snippets.push(`- ${text}`);
-    if (snippets.length >= MAX_TEXT_SNIPPETS) break;
+    return snippets.length >= MAX_TEXT_SNIPPETS;
+  };
+
+  // Pass 1: semantic text elements (p, li, headings, etc.)
+  const candidates = Array.from(root.querySelectorAll(TEXT_CONTENT_SELECTOR));
+  for (const node of candidates) {
+    if (!isVisible(node)) continue;
+    const raw = normalizeWhitespace(node.textContent || "");
+    if (addSnippet(raw)) return snippets;
+  }
+
+  // Pass 2: generic containers (div, span, section, etc.) that hold
+  // direct text not already captured by semantic tags above.
+  const genericContainers = Array.from(
+    root.querySelectorAll("div, span, section, article, aside, header, footer"),
+  );
+  for (const node of genericContainers) {
+    if (!isVisible(node)) continue;
+    // Only include elements whose own direct child text nodes are meaningful,
+    // to avoid duplicating text already captured from nested semantic tags.
+    if (!hasDirectText(node)) continue;
+    const raw = normalizeWhitespace(node.textContent || "");
+    if (addSnippet(raw)) return snippets;
   }
 
   return snippets;
