@@ -1,215 +1,267 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bulut Buttons Lab</title>
-  <link rel="stylesheet" href="/complex-ui.css">
-</head>
-<body>
-  <div class="site-shell">
-    <header class="site-header">
-      <div>
-        <h1 class="site-title">Buttons Lab</h1>
-        <p class="muted">Large button matrix with toolbars, command rows, and toggle banks.</p>
-      </div>
-      <nav class="nav-row" aria-label="Primary">
-        <a class="nav-link" href="/index.html">Home</a>
-        <a class="nav-link" href="/forms-lab.html">Forms Lab</a>
-        <a class="nav-link" href="/buttons-lab.html">Buttons Lab</a>
-        <a class="nav-link" href="/workflows.html">Workflow Deck</a>
-      </nav>
-    </header>
-
-    <main class="main-column">
-      <section class="card">
-        <h2>Variants</h2>
-        <div class="button-row">
-          <button class="btn btn-primary">Primary</button>
-          <button class="btn btn-success">Success</button>
-          <button class="btn btn-warning">Warning</button>
-          <button class="btn btn-danger">Danger</button>
-          <button class="btn btn-outline">Outline</button>
-          <button class="btn">Default</button>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bulut Buttons Lab</title>
+    <link rel="stylesheet" href="/complex-ui.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="site-header">
+        <div>
+          <h1 class="site-title">Buttons Lab</h1>
+          <p class="muted">
+            Large button matrix with toolbars, command rows, and toggle banks.
+          </p>
         </div>
-        <div class="button-row">
-          <button class="btn btn-sm btn-primary">Small Primary</button>
-          <button class="btn btn-sm">Small Default</button>
-          <button class="btn btn-sm btn-warning">Small Warning</button>
-          <button class="btn btn-lg btn-primary">Large Primary</button>
-          <button class="btn btn-lg">Large Default</button>
-          <button class="btn btn-lg btn-danger">Large Danger</button>
-        </div>
-      </section>
+        <nav class="nav-row" aria-label="Primary">
+          <a class="nav-link" href="/index.html">Home</a>
+          <a class="nav-link" href="/forms-lab.html">Forms Lab</a>
+          <a class="nav-link" href="/buttons-lab.html">Buttons Lab</a>
+          <a class="nav-link" href="/workflows.html">Workflow Deck</a>
+        </nav>
+      </header>
 
-      <section class="card">
-        <h2>Toolbar Bank A</h2>
-        <div class="grid-4">
-          <div class="status-tile">
-            <h4>Session</h4>
-            <div class="button-row">
-              <button class="btn btn-sm btn-primary">Start</button>
-              <button class="btn btn-sm">Pause</button>
-              <button class="btn btn-sm btn-danger">Stop</button>
-              <button class="btn btn-sm btn-warning">Force Resume</button>
-            </div>
-          </div>
-          <div class="status-tile">
-            <h4>Audio</h4>
-            <div class="button-row">
-              <button class="btn btn-sm">Mic On</button>
-              <button class="btn btn-sm">Mic Off</button>
-              <button class="btn btn-sm btn-success">Noise Filter</button>
-              <button class="btn btn-sm btn-warning">Gain +2dB</button>
-            </div>
-          </div>
-          <div class="status-tile">
-            <h4>Transcript</h4>
-            <div class="button-row">
-              <button class="btn btn-sm">Live</button>
-              <button class="btn btn-sm">Snapshot</button>
-              <button class="btn btn-sm btn-success">Copy</button>
-              <button class="btn btn-sm btn-danger">Wipe</button>
-            </div>
-          </div>
-          <div class="status-tile">
-            <h4>Routing</h4>
-            <div class="button-row">
-              <button class="btn btn-sm">US-East</button>
-              <button class="btn btn-sm">US-West</button>
-              <button class="btn btn-sm btn-warning">EU</button>
-              <button class="btn btn-sm btn-danger">Fallback</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="card">
-        <h2>Toggle Wall</h2>
-        <p class="muted">Each button updates its own <code>aria-pressed</code> value.</p>
-        <div class="button-row">
-          <button class="btn" data-toggle-pressed aria-pressed="false">Caption Assist</button>
-          <button class="btn" data-toggle-pressed aria-pressed="true">Form Label Repair</button>
-          <button class="btn" data-toggle-pressed aria-pressed="false">Dynamic Hints</button>
-          <button class="btn" data-toggle-pressed aria-pressed="false">Command Echo</button>
-          <button class="btn" data-toggle-pressed aria-pressed="true">Auto Retry</button>
-          <button class="btn" data-toggle-pressed aria-pressed="false">Latency Alerts</button>
-          <button class="btn" data-toggle-pressed aria-pressed="false">Keyboard Coach</button>
-          <button class="btn" data-toggle-pressed aria-pressed="true">Short Responses</button>
-          <button class="btn" data-toggle-pressed aria-pressed="false">Narration Locks</button>
-          <button class="btn" data-toggle-pressed aria-pressed="false">Visual Marker</button>
-          <button class="btn" data-toggle-pressed aria-pressed="true">Command Buffer</button>
-          <button class="btn" data-toggle-pressed aria-pressed="false">Signal Debug</button>
-        </div>
-      </section>
-
-      <section class="card">
-        <h2>Button Matrix</h2>
-        <p class="muted">Dense rows of context-specific actions.</p>
-        <div class="grid-4">
-          <div class="status-tile">
-            <h4>Navigation Actions</h4>
-            <div class="button-row">
-              <button class="btn btn-sm">Home</button>
-              <button class="btn btn-sm">Back</button>
-              <button class="btn btn-sm">Forward</button>
-              <button class="btn btn-sm">Reload</button>
-              <button class="btn btn-sm">Top</button>
-              <button class="btn btn-sm">Bottom</button>
-            </div>
-          </div>
-          <div class="status-tile">
-            <h4>Ticket Actions</h4>
-            <div class="button-row">
-              <button class="btn btn-sm btn-primary">Open</button>
-              <button class="btn btn-sm">Assign</button>
-              <button class="btn btn-sm">Tag</button>
-              <button class="btn btn-sm btn-warning">Escalate</button>
-              <button class="btn btn-sm">Merge</button>
-              <button class="btn btn-sm btn-danger">Close</button>
-            </div>
-          </div>
-          <div class="status-tile">
-            <h4>Build Actions</h4>
-            <div class="button-row">
-              <button class="btn btn-sm">Lint</button>
-              <button class="btn btn-sm">Test</button>
-              <button class="btn btn-sm btn-primary">Build</button>
-              <button class="btn btn-sm btn-success">Deploy</button>
-              <button class="btn btn-sm btn-warning">Canary</button>
-              <button class="btn btn-sm btn-danger">Rollback</button>
-            </div>
-          </div>
-          <div class="status-tile">
-            <h4>Data Actions</h4>
-            <div class="button-row">
-              <button class="btn btn-sm">Import</button>
-              <button class="btn btn-sm">Export</button>
-              <button class="btn btn-sm">Archive</button>
-              <button class="btn btn-sm">Diff</button>
-              <button class="btn btn-sm btn-warning">Reindex</button>
-              <button class="btn btn-sm btn-danger">Purge</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="card">
-        <h2>Command Launcher Form</h2>
-        <form data-capture>
-          <div class="grid-3">
-            <label>Command Group
-              <select name="group">
-                <option>agent</option>
-                <option>ui</option>
-                <option>telemetry</option>
-                <option>security</option>
-              </select>
-            </label>
-            <label>Target
-              <input name="target" placeholder="component id / css selector">
-            </label>
-            <label>Priority
-              <select name="priority">
-                <option>P1</option>
-                <option>P2</option>
-                <option>P3</option>
-                <option>P4</option>
-              </select>
-            </label>
-          </div>
-          <fieldset style="margin-top: 12px;">
-            <legend>Execution Flags</legend>
-            <div class="inline-options">
-              <label><input type="checkbox" name="flag" value="dry_run"> Dry Run</label>
-              <label><input type="checkbox" name="flag" value="verbose"> Verbose</label>
-              <label><input type="checkbox" name="flag" value="notify"> Notify Channel</label>
-              <label><input type="checkbox" name="flag" value="record"> Record Session</label>
-            </div>
-          </fieldset>
+      <main class="main-column">
+        <section class="card">
+          <h2>Variants</h2>
           <div class="button-row">
-            <button type="submit" class="btn btn-primary">Dispatch</button>
-            <button type="button" class="btn">Queue</button>
-            <button type="button" class="btn btn-success">Run Fast Path</button>
-            <button type="button" class="btn btn-warning">Run Safe Mode</button>
-            <button type="reset" class="btn btn-danger">Clear</button>
+            <button class="btn btn-primary">Primary</button>
+            <button class="btn btn-success">Success</button>
+            <button class="btn btn-warning">Warning</button>
+            <button class="btn btn-danger">Danger</button>
+            <button class="btn btn-outline">Outline</button>
+            <button class="btn">Default</button>
           </div>
-        </form>
-      </section>
+          <div class="button-row">
+            <button class="btn btn-sm btn-primary">Small Primary</button>
+            <button class="btn btn-sm">Small Default</button>
+            <button class="btn btn-sm btn-warning">Small Warning</button>
+            <button class="btn btn-lg btn-primary">Large Primary</button>
+            <button class="btn btn-lg">Large Default</button>
+            <button class="btn btn-lg btn-danger">Large Danger</button>
+          </div>
+        </section>
 
-      <section class="card">
-        <h3>Form Capture Output</h3>
-        <div class="callout" data-form-output>Waiting for submitted form data.</div>
-      </section>
-    </main>
-  </div>
+        <section class="card">
+          <h2>Toolbar Bank A</h2>
+          <div class="grid-4">
+            <div class="status-tile">
+              <h4>Session</h4>
+              <div class="button-row">
+                <button class="btn btn-sm btn-primary">Start</button>
+                <button class="btn btn-sm">Pause</button>
+                <button class="btn btn-sm btn-danger">Stop</button>
+                <button class="btn btn-sm btn-warning">Force Resume</button>
+              </div>
+            </div>
+            <div class="status-tile">
+              <h4>Audio</h4>
+              <div class="button-row">
+                <button class="btn btn-sm">Mic On</button>
+                <button class="btn btn-sm">Mic Off</button>
+                <button class="btn btn-sm btn-success">Noise Filter</button>
+                <button class="btn btn-sm btn-warning">Gain +2dB</button>
+              </div>
+            </div>
+            <div class="status-tile">
+              <h4>Transcript</h4>
+              <div class="button-row">
+                <button class="btn btn-sm">Live</button>
+                <button class="btn btn-sm">Snapshot</button>
+                <button class="btn btn-sm btn-success">Copy</button>
+                <button class="btn btn-sm btn-danger">Wipe</button>
+              </div>
+            </div>
+            <div class="status-tile">
+              <h4>Routing</h4>
+              <div class="button-row">
+                <button class="btn btn-sm">US-East</button>
+                <button class="btn btn-sm">US-West</button>
+                <button class="btn btn-sm btn-warning">EU</button>
+                <button class="btn btn-sm btn-danger">Fallback</button>
+              </div>
+            </div>
+          </div>
+        </section>
 
-  <script src="/complex-ui.js"></script>
-      <script type="module">
-    import { init } from '/src/index.tsx';
-    init({
-      projectId: '4ae21bf0-face-4cf8-b1a8-1043cefc46f3',
-    });
-  </script>
-</body>
+        <section class="card">
+          <h2>Toggle Wall</h2>
+          <p class="muted">
+            Each button updates its own <code>aria-pressed</code> value.
+          </p>
+          <div class="button-row">
+            <button class="btn" data-toggle-pressed aria-pressed="false">
+              Caption Assist
+            </button>
+            <button class="btn" data-toggle-pressed aria-pressed="true">
+              Form Label Repair
+            </button>
+            <button class="btn" data-toggle-pressed aria-pressed="false">
+              Dynamic Hints
+            </button>
+            <button class="btn" data-toggle-pressed aria-pressed="false">
+              Command Echo
+            </button>
+            <button class="btn" data-toggle-pressed aria-pressed="true">
+              Auto Retry
+            </button>
+            <button class="btn" data-toggle-pressed aria-pressed="false">
+              Latency Alerts
+            </button>
+            <button class="btn" data-toggle-pressed aria-pressed="false">
+              Keyboard Coach
+            </button>
+            <button class="btn" data-toggle-pressed aria-pressed="true">
+              Short Responses
+            </button>
+            <button class="btn" data-toggle-pressed aria-pressed="false">
+              Narration Locks
+            </button>
+            <button class="btn" data-toggle-pressed aria-pressed="false">
+              Visual Marker
+            </button>
+            <button class="btn" data-toggle-pressed aria-pressed="true">
+              Command Buffer
+            </button>
+            <button class="btn" data-toggle-pressed aria-pressed="false">
+              Signal Debug
+            </button>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Button Matrix</h2>
+          <p class="muted">Dense rows of context-specific actions.</p>
+          <div class="grid-4">
+            <div class="status-tile">
+              <h4>Navigation Actions</h4>
+              <div class="button-row">
+                <button class="btn btn-sm">Home</button>
+                <button class="btn btn-sm">Back</button>
+                <button class="btn btn-sm">Forward</button>
+                <button class="btn btn-sm">Reload</button>
+                <button class="btn btn-sm">Top</button>
+                <button class="btn btn-sm">Bottom</button>
+              </div>
+            </div>
+            <div class="status-tile">
+              <h4>Ticket Actions</h4>
+              <div class="button-row">
+                <button class="btn btn-sm btn-primary">Open</button>
+                <button class="btn btn-sm">Assign</button>
+                <button class="btn btn-sm">Tag</button>
+                <button class="btn btn-sm btn-warning">Escalate</button>
+                <button class="btn btn-sm">Merge</button>
+                <button class="btn btn-sm btn-danger">Close</button>
+              </div>
+            </div>
+            <div class="status-tile">
+              <h4>Build Actions</h4>
+              <div class="button-row">
+                <button class="btn btn-sm">Lint</button>
+                <button class="btn btn-sm">Test</button>
+                <button class="btn btn-sm btn-primary">Build</button>
+                <button class="btn btn-sm btn-success">Deploy</button>
+                <button class="btn btn-sm btn-warning">Canary</button>
+                <button class="btn btn-sm btn-danger">Rollback</button>
+              </div>
+            </div>
+            <div class="status-tile">
+              <h4>Data Actions</h4>
+              <div class="button-row">
+                <button class="btn btn-sm">Import</button>
+                <button class="btn btn-sm">Export</button>
+                <button class="btn btn-sm">Archive</button>
+                <button class="btn btn-sm">Diff</button>
+                <button class="btn btn-sm btn-warning">Reindex</button>
+                <button class="btn btn-sm btn-danger">Purge</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Command Launcher Form</h2>
+          <form data-capture>
+            <div class="grid-3">
+              <label
+                >Command Group
+                <select name="group">
+                  <option>agent</option>
+                  <option>ui</option>
+                  <option>telemetry</option>
+                  <option>security</option>
+                </select>
+              </label>
+              <label
+                >Target
+                <input
+                  name="target"
+                  placeholder="component id / css selector"
+                />
+              </label>
+              <label
+                >Priority
+                <select name="priority">
+                  <option>P1</option>
+                  <option>P2</option>
+                  <option>P3</option>
+                  <option>P4</option>
+                </select>
+              </label>
+            </div>
+            <fieldset style="margin-top: 12px">
+              <legend>Execution Flags</legend>
+              <div class="inline-options">
+                <label
+                  ><input type="checkbox" name="flag" value="dry_run" /> Dry
+                  Run</label
+                >
+                <label
+                  ><input type="checkbox" name="flag" value="verbose" />
+                  Verbose</label
+                >
+                <label
+                  ><input type="checkbox" name="flag" value="notify" /> Notify
+                  Channel</label
+                >
+                <label
+                  ><input type="checkbox" name="flag" value="record" /> Record
+                  Session</label
+                >
+              </div>
+            </fieldset>
+            <div class="button-row">
+              <button type="submit" class="btn btn-primary">Dispatch</button>
+              <button type="button" class="btn">Queue</button>
+              <button type="button" class="btn btn-success">
+                Run Fast Path
+              </button>
+              <button type="button" class="btn btn-warning">
+                Run Safe Mode
+              </button>
+              <button type="reset" class="btn btn-danger">Clear</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="card">
+          <h3>Form Capture Output</h3>
+          <div class="callout" data-form-output>
+            Waiting for submitted form data.
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/complex-ui.js"></script>
+    <script type="module">
+      import { init } from "/src/index.tsx";
+      init({
+        projectId: "423eedbb-5029-407b-8490-ccc2ba7e92cd",
+      });
+    </script>
+  </body>
 </html>

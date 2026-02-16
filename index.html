@@ -1,366 +1,506 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bulut Control Surface</title>
-  <link rel="stylesheet" href="/complex-ui.css">
-</head>
-<body>
-  <div class="site-shell">
-    <header class="site-header">
-      <div>
-        <h1 class="site-title">Bulut Accessibility Control Surface</h1>
-        <p class="muted">Dense home page with navigation to form/button stress labs.</p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bulut Control Surface</title>
+    <link rel="stylesheet" href="/complex-ui.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="site-header">
+        <div>
+          <h1 class="site-title">Bulut Accessibility Control Surface</h1>
+          <p class="muted">
+            Dense home page with navigation to form/button stress labs.
+          </p>
+        </div>
+        <nav class="nav-row" aria-label="Primary">
+          <a class="nav-link" href="/index.html">Home</a>
+          <a class="nav-link" href="/forms-lab.html">Forms Lab</a>
+          <a class="nav-link" href="/buttons-lab.html">Buttons Lab</a>
+          <a class="nav-link" href="/workflows.html">Workflow Deck</a>
+        </nav>
+      </header>
+
+      <div class="layout">
+        <main class="main-column">
+          <section class="card">
+            <h2>Command Deck</h2>
+            <p class="muted">A crowded action board with mixed priorities.</p>
+            <div class="button-row">
+              <button class="btn btn-primary">Start Monitoring</button>
+              <button class="btn">Pause Session</button>
+              <button class="btn btn-warning">Escalate Issue</button>
+              <button class="btn btn-danger">Force Stop</button>
+              <button class="btn btn-success">Apply Preset</button>
+              <button class="btn btn-outline">Pin Widgets</button>
+              <button class="btn btn-sm">Refresh Queue</button>
+              <button class="btn btn-sm btn-warning">Retry API</button>
+              <button class="btn btn-sm btn-danger">Clear Cache</button>
+              <button class="btn btn-lg btn-primary">Launch Diagnostics</button>
+              <button class="btn btn-lg">Enable Broadcast</button>
+              <button class="btn btn-lg btn-success">Sync Captions</button>
+            </div>
+            <div class="pill-row" style="margin-top: 14px">
+              <span class="pill">voice-agent</span>
+              <span class="pill">tooltip-overlay</span>
+              <span class="pill">form-assist</span>
+              <span class="pill">high-contrast</span>
+              <span class="pill">keyboard-focus</span>
+              <span class="pill">live-transcript</span>
+              <span class="pill">retry-queue</span>
+              <span class="pill">screen-reader</span>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2>Visitor Intake Form</h2>
+            <form data-capture>
+              <div class="form-grid">
+                <label
+                  >First Name
+                  <input name="first_name" autocomplete="given-name" required />
+                </label>
+                <label
+                  >Last Name
+                  <input name="last_name" autocomplete="family-name" required />
+                </label>
+                <label
+                  >Email
+                  <input
+                    name="email"
+                    type="email"
+                    autocomplete="email"
+                    required
+                  />
+                </label>
+                <label
+                  >Phone
+                  <input name="phone" type="tel" autocomplete="tel" />
+                </label>
+                <label
+                  >Preferred Language
+                  <select name="language">
+                    <option>English</option>
+                    <option>Turkish</option>
+                    <option>Spanish</option>
+                    <option>German</option>
+                  </select>
+                </label>
+                <label
+                  >Time Zone
+                  <select name="timezone">
+                    <option>America/New_York</option>
+                    <option>America/Chicago</option>
+                    <option>America/Denver</option>
+                    <option>America/Los_Angeles</option>
+                  </select>
+                </label>
+                <label
+                  >Birth Date
+                  <input name="birth_date" type="date" />
+                </label>
+                <label
+                  >Session Priority
+                  <input
+                    name="priority"
+                    type="range"
+                    min="1"
+                    max="10"
+                    value="5"
+                  />
+                </label>
+                <label
+                  >Theme Color
+                  <input name="theme_color" type="color" value="#0955d6" />
+                </label>
+                <fieldset class="full">
+                  <legend>Assistive Needs</legend>
+                  <div class="inline-options">
+                    <label
+                      ><input name="assist" type="checkbox" value="captions" />
+                      Live Captions</label
+                    >
+                    <label
+                      ><input
+                        name="assist"
+                        type="checkbox"
+                        value="voice_control"
+                      />
+                      Voice Control</label
+                    >
+                    <label
+                      ><input
+                        name="assist"
+                        type="checkbox"
+                        value="high_contrast"
+                      />
+                      High Contrast</label
+                    >
+                    <label
+                      ><input
+                        name="assist"
+                        type="checkbox"
+                        value="larger_text"
+                      />
+                      Larger Text</label
+                    >
+                    <label
+                      ><input
+                        name="assist"
+                        type="checkbox"
+                        value="simplified_nav"
+                      />
+                      Simplified Navigation</label
+                    >
+                  </div>
+                </fieldset>
+                <fieldset class="full">
+                  <legend>Communication Mode</legend>
+                  <div class="inline-options">
+                    <label
+                      ><input
+                        name="channel"
+                        type="radio"
+                        value="voice"
+                        checked
+                      />
+                      Voice</label
+                    >
+                    <label
+                      ><input name="channel" type="radio" value="chat" />
+                      Chat</label
+                    >
+                    <label
+                      ><input name="channel" type="radio" value="hybrid" />
+                      Hybrid</label
+                    >
+                  </div>
+                </fieldset>
+                <label class="full"
+                  >Notes
+                  <textarea
+                    name="notes"
+                    placeholder="Describe needs, blockers, or context."
+                  ></textarea>
+                </label>
+              </div>
+              <div class="button-row">
+                <button type="submit" class="btn btn-primary">
+                  Submit Intake
+                </button>
+                <button type="reset" class="btn">Reset Form</button>
+                <button type="button" class="btn btn-warning">
+                  Save Draft
+                </button>
+                <button type="button" class="btn btn-success">
+                  Validate Fields
+                </button>
+                <button type="button" class="btn btn-danger">Discard</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="card">
+            <h2>Query + Filters</h2>
+            <form data-capture>
+              <div class="grid-3">
+                <label
+                  >Search
+                  <input
+                    name="search"
+                    type="search"
+                    placeholder="Keyword, URL, selector..."
+                  />
+                </label>
+                <label
+                  >Sort
+                  <select name="sort">
+                    <option>Most Recent</option>
+                    <option>Highest Impact</option>
+                    <option>Most Clicked</option>
+                    <option>Longest Duration</option>
+                  </select>
+                </label>
+                <label
+                  >Status
+                  <select name="status">
+                    <option>All</option>
+                    <option>Open</option>
+                    <option>Pending</option>
+                    <option>Resolved</option>
+                  </select>
+                </label>
+              </div>
+              <fieldset style="margin-top: 12px">
+                <legend>Result Scope</legend>
+                <div class="inline-options">
+                  <label
+                    ><input type="checkbox" name="scope" value="home" />
+                    Home</label
+                  >
+                  <label
+                    ><input type="checkbox" name="scope" value="checkout" />
+                    Checkout</label
+                  >
+                  <label
+                    ><input type="checkbox" name="scope" value="profile" />
+                    Profile</label
+                  >
+                  <label
+                    ><input type="checkbox" name="scope" value="help" /> Help
+                    Center</label
+                  >
+                  <label
+                    ><input type="checkbox" name="scope" value="dashboard" />
+                    Dashboard</label
+                  >
+                  <label
+                    ><input type="checkbox" name="scope" value="settings" />
+                    Settings</label
+                  >
+                </div>
+              </fieldset>
+              <div class="button-row">
+                <button type="submit" class="btn btn-primary">Run Query</button>
+                <button type="button" class="btn">Export CSV</button>
+                <button type="button" class="btn">Export JSON</button>
+                <button type="button" class="btn btn-warning">
+                  Schedule Query
+                </button>
+                <button type="reset" class="btn btn-danger">
+                  Clear Filters
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <section class="card">
+            <h2>Issue Table</h2>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Issue</th>
+                  <th>Page</th>
+                  <th>Severity</th>
+                  <th>Owner</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Button missing label</td>
+                  <td>/checkout</td>
+                  <td>High</td>
+                  <td>UI Team</td>
+                  <td>
+                    <div class="button-row">
+                      <button class="btn btn-sm btn-primary">Open</button>
+                      <button class="btn btn-sm">Assign</button>
+                      <button class="btn btn-sm btn-warning">Snooze</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Low contrast text block</td>
+                  <td>/pricing</td>
+                  <td>Medium</td>
+                  <td>Design Ops</td>
+                  <td>
+                    <div class="button-row">
+                      <button class="btn btn-sm btn-primary">Open</button>
+                      <button class="btn btn-sm btn-success">Patch</button>
+                      <button class="btn btn-sm btn-danger">Archive</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Focus trap broken in modal</td>
+                  <td>/account</td>
+                  <td>Critical</td>
+                  <td>Core Web</td>
+                  <td>
+                    <div class="button-row">
+                      <button class="btn btn-sm btn-primary">Open</button>
+                      <button class="btn btn-sm">Assign</button>
+                      <button class="btn btn-sm btn-warning">Escalate</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <section class="card">
+            <h2>Extra Components</h2>
+            <div class="grid-2">
+              <div>
+                <h3>Progress Stack</h3>
+                <div class="progress-row">
+                  <label
+                    >Voice accuracy <progress value="81" max="100"></progress
+                  ></label>
+                  <label
+                    >Intent matching <progress value="63" max="100"></progress
+                  ></label>
+                  <label
+                    >Recovery attempts <progress value="44" max="100"></progress
+                  ></label>
+                </div>
+                <p class="callout">
+                  Use <span class="kbd">Ctrl</span> +
+                  <span class="kbd">Shift</span> + <span class="kbd">V</span> to
+                  open the debug voice panel.
+                </p>
+              </div>
+              <div>
+                <h3>Quick Knowledge</h3>
+                <details>
+                  <summary>How to classify blocker vs nuisance?</summary>
+                  <p>
+                    Blocker means task completion fails. Nuisance means task is
+                    possible but degraded.
+                  </p>
+                </details>
+                <details>
+                  <summary>How do we trigger fallback prompts?</summary>
+                  <p>
+                    Press <code>Retry API</code> twice, then choose the backup
+                    model profile.
+                  </p>
+                </details>
+                <dialog open>
+                  <p>Dialog sample: confirm before bulk update.</p>
+                  <div class="button-row">
+                    <button class="btn btn-primary">Confirm</button>
+                    <button class="btn">Cancel</button>
+                  </div>
+                </dialog>
+              </div>
+            </div>
+          </section>
+        </main>
+
+        <aside class="side-column">
+          <section class="card">
+            <h3>Status Board</h3>
+            <div class="status-grid">
+              <div class="status-tile">
+                <strong>Active Sessions:</strong> 38
+              </div>
+              <div class="status-tile">
+                <strong>Avg Response:</strong> 1.42s
+              </div>
+              <div class="status-tile"><strong>Escalations:</strong> 4</div>
+              <div class="status-tile"><strong>Muted Feeds:</strong> 2</div>
+            </div>
+          </section>
+
+          <section class="card">
+            <h3>Toggle Wall</h3>
+            <p class="muted">Press buttons to switch aria-pressed states.</p>
+            <div class="button-row">
+              <button class="btn" data-toggle-pressed aria-pressed="false">
+                Live Captions
+              </button>
+              <button class="btn" data-toggle-pressed aria-pressed="true">
+                Input Cleanup
+              </button>
+              <button class="btn" data-toggle-pressed aria-pressed="false">
+                Aggressive Retry
+              </button>
+              <button class="btn" data-toggle-pressed aria-pressed="true">
+                Analytics Mode
+              </button>
+              <button class="btn" data-toggle-pressed aria-pressed="false">
+                Focus Rings
+              </button>
+              <button class="btn" data-toggle-pressed aria-pressed="false">
+                Voice Polling
+              </button>
+            </div>
+          </section>
+
+          <section class="card">
+            <h3>Operations Timeline</h3>
+            <ul class="timeline">
+              <li>
+                <strong>15:04</strong>
+                <p>Voice transcript delay detected on checkout form.</p>
+                <button class="btn btn-sm">Inspect</button>
+              </li>
+              <li>
+                <strong>15:18</strong>
+                <p>Fallback command parser activated for 12 sessions.</p>
+                <button class="btn btn-sm btn-warning">Review</button>
+              </li>
+              <li>
+                <strong>15:29</strong>
+                <p>New guidance prompts published to landing pages.</p>
+                <button class="btn btn-sm btn-success">Accept</button>
+              </li>
+            </ul>
+          </section>
+
+          <section class="card">
+            <h3>Form Capture Output</h3>
+            <p class="muted">
+              Submitting any form on this page writes output here.
+            </p>
+            <div class="callout" data-form-output>
+              Waiting for submitted form data.
+            </div>
+          </section>
+        </aside>
       </div>
-      <nav class="nav-row" aria-label="Primary">
-        <a class="nav-link" href="/index.html">Home</a>
-        <a class="nav-link" href="/forms-lab.html">Forms Lab</a>
-        <a class="nav-link" href="/buttons-lab.html">Buttons Lab</a>
-        <a class="nav-link" href="/workflows.html">Workflow Deck</a>
-      </nav>
-    </header>
 
-    <div class="layout">
-      <main class="main-column">
-        <section class="card">
-          <h2>Command Deck</h2>
-          <p class="muted">A crowded action board with mixed priorities.</p>
-          <div class="button-row">
-            <button class="btn btn-primary">Start Monitoring</button>
-            <button class="btn">Pause Session</button>
-            <button class="btn btn-warning">Escalate Issue</button>
-            <button class="btn btn-danger">Force Stop</button>
-            <button class="btn btn-success">Apply Preset</button>
-            <button class="btn btn-outline">Pin Widgets</button>
-            <button class="btn btn-sm">Refresh Queue</button>
-            <button class="btn btn-sm btn-warning">Retry API</button>
-            <button class="btn btn-sm btn-danger">Clear Cache</button>
-            <button class="btn btn-lg btn-primary">Launch Diagnostics</button>
-            <button class="btn btn-lg">Enable Broadcast</button>
-            <button class="btn btn-lg btn-success">Sync Captions</button>
-          </div>
-          <div class="pill-row" style="margin-top: 14px;">
-            <span class="pill">voice-agent</span>
-            <span class="pill">tooltip-overlay</span>
-            <span class="pill">form-assist</span>
-            <span class="pill">high-contrast</span>
-            <span class="pill">keyboard-focus</span>
-            <span class="pill">live-transcript</span>
-            <span class="pill">retry-queue</span>
-            <span class="pill">screen-reader</span>
-          </div>
-        </section>
-
-        <section class="card">
-          <h2>Visitor Intake Form</h2>
-          <form data-capture>
-            <div class="form-grid">
-              <label>First Name
-                <input name="first_name" autocomplete="given-name" required>
-              </label>
-              <label>Last Name
-                <input name="last_name" autocomplete="family-name" required>
-              </label>
-              <label>Email
-                <input name="email" type="email" autocomplete="email" required>
-              </label>
-              <label>Phone
-                <input name="phone" type="tel" autocomplete="tel">
-              </label>
-              <label>Preferred Language
-                <select name="language">
-                  <option>English</option>
-                  <option>Turkish</option>
-                  <option>Spanish</option>
-                  <option>German</option>
-                </select>
-              </label>
-              <label>Time Zone
-                <select name="timezone">
-                  <option>America/New_York</option>
-                  <option>America/Chicago</option>
-                  <option>America/Denver</option>
-                  <option>America/Los_Angeles</option>
-                </select>
-              </label>
-              <label>Birth Date
-                <input name="birth_date" type="date">
-              </label>
-              <label>Session Priority
-                <input name="priority" type="range" min="1" max="10" value="5">
-              </label>
-              <label>Theme Color
-                <input name="theme_color" type="color" value="#0955d6">
-              </label>
-              <fieldset class="full">
-                <legend>Assistive Needs</legend>
-                <div class="inline-options">
-                  <label><input name="assist" type="checkbox" value="captions"> Live Captions</label>
-                  <label><input name="assist" type="checkbox" value="voice_control"> Voice Control</label>
-                  <label><input name="assist" type="checkbox" value="high_contrast"> High Contrast</label>
-                  <label><input name="assist" type="checkbox" value="larger_text"> Larger Text</label>
-                  <label><input name="assist" type="checkbox" value="simplified_nav"> Simplified Navigation</label>
-                </div>
-              </fieldset>
-              <fieldset class="full">
-                <legend>Communication Mode</legend>
-                <div class="inline-options">
-                  <label><input name="channel" type="radio" value="voice" checked> Voice</label>
-                  <label><input name="channel" type="radio" value="chat"> Chat</label>
-                  <label><input name="channel" type="radio" value="hybrid"> Hybrid</label>
-                </div>
-              </fieldset>
-              <label class="full">Notes
-                <textarea name="notes" placeholder="Describe needs, blockers, or context."></textarea>
-              </label>
-            </div>
+      <section class="card">
+        <h3>Footer Action Grid</h3>
+        <div class="footer-grid">
+          <div>
+            <h4>Audit</h4>
             <div class="button-row">
-              <button type="submit" class="btn btn-primary">Submit Intake</button>
-              <button type="reset" class="btn">Reset Form</button>
-              <button type="button" class="btn btn-warning">Save Draft</button>
-              <button type="button" class="btn btn-success">Validate Fields</button>
-              <button type="button" class="btn btn-danger">Discard</button>
+              <button class="btn btn-sm">Run A11y Scan</button>
+              <button class="btn btn-sm">Capture Snapshot</button>
+              <button class="btn btn-sm">Open Logs</button>
             </div>
-          </form>
-        </section>
-
-        <section class="card">
-          <h2>Query + Filters</h2>
-          <form data-capture>
-            <div class="grid-3">
-              <label>Search
-                <input name="search" type="search" placeholder="Keyword, URL, selector...">
-              </label>
-              <label>Sort
-                <select name="sort">
-                  <option>Most Recent</option>
-                  <option>Highest Impact</option>
-                  <option>Most Clicked</option>
-                  <option>Longest Duration</option>
-                </select>
-              </label>
-              <label>Status
-                <select name="status">
-                  <option>All</option>
-                  <option>Open</option>
-                  <option>Pending</option>
-                  <option>Resolved</option>
-                </select>
-              </label>
-            </div>
-            <fieldset style="margin-top: 12px;">
-              <legend>Result Scope</legend>
-              <div class="inline-options">
-                <label><input type="checkbox" name="scope" value="home"> Home</label>
-                <label><input type="checkbox" name="scope" value="checkout"> Checkout</label>
-                <label><input type="checkbox" name="scope" value="profile"> Profile</label>
-                <label><input type="checkbox" name="scope" value="help"> Help Center</label>
-                <label><input type="checkbox" name="scope" value="dashboard"> Dashboard</label>
-                <label><input type="checkbox" name="scope" value="settings"> Settings</label>
-              </div>
-            </fieldset>
+          </div>
+          <div>
+            <h4>Support</h4>
             <div class="button-row">
-              <button type="submit" class="btn btn-primary">Run Query</button>
-              <button type="button" class="btn">Export CSV</button>
-              <button type="button" class="btn">Export JSON</button>
-              <button type="button" class="btn btn-warning">Schedule Query</button>
-              <button type="reset" class="btn btn-danger">Clear Filters</button>
-            </div>
-          </form>
-        </section>
-
-        <section class="card">
-          <h2>Issue Table</h2>
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Issue</th>
-                <th>Page</th>
-                <th>Severity</th>
-                <th>Owner</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Button missing label</td>
-                <td>/checkout</td>
-                <td>High</td>
-                <td>UI Team</td>
-                <td>
-                  <div class="button-row">
-                    <button class="btn btn-sm btn-primary">Open</button>
-                    <button class="btn btn-sm">Assign</button>
-                    <button class="btn btn-sm btn-warning">Snooze</button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>Low contrast text block</td>
-                <td>/pricing</td>
-                <td>Medium</td>
-                <td>Design Ops</td>
-                <td>
-                  <div class="button-row">
-                    <button class="btn btn-sm btn-primary">Open</button>
-                    <button class="btn btn-sm btn-success">Patch</button>
-                    <button class="btn btn-sm btn-danger">Archive</button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>Focus trap broken in modal</td>
-                <td>/account</td>
-                <td>Critical</td>
-                <td>Core Web</td>
-                <td>
-                  <div class="button-row">
-                    <button class="btn btn-sm btn-primary">Open</button>
-                    <button class="btn btn-sm">Assign</button>
-                    <button class="btn btn-sm btn-warning">Escalate</button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
-
-        <section class="card">
-          <h2>Extra Components</h2>
-          <div class="grid-2">
-            <div>
-              <h3>Progress Stack</h3>
-              <div class="progress-row">
-                <label>Voice accuracy <progress value="81" max="100"></progress></label>
-                <label>Intent matching <progress value="63" max="100"></progress></label>
-                <label>Recovery attempts <progress value="44" max="100"></progress></label>
-              </div>
-              <p class="callout">Use <span class="kbd">Ctrl</span> + <span class="kbd">Shift</span> + <span class="kbd">V</span> to open the debug voice panel.</p>
-            </div>
-            <div>
-              <h3>Quick Knowledge</h3>
-              <details>
-                <summary>How to classify blocker vs nuisance?</summary>
-                <p>Blocker means task completion fails. Nuisance means task is possible but degraded.</p>
-              </details>
-              <details>
-                <summary>How do we trigger fallback prompts?</summary>
-                <p>Press <code>Retry API</code> twice, then choose the backup model profile.</p>
-              </details>
-              <dialog open>
-                <p>Dialog sample: confirm before bulk update.</p>
-                <div class="button-row">
-                  <button class="btn btn-primary">Confirm</button>
-                  <button class="btn">Cancel</button>
-                </div>
-              </dialog>
+              <button class="btn btn-sm">Open Ticket</button>
+              <button class="btn btn-sm">Call User</button>
+              <button class="btn btn-sm">Add Memo</button>
             </div>
           </div>
-        </section>
-      </main>
-
-      <aside class="side-column">
-        <section class="card">
-          <h3>Status Board</h3>
-          <div class="status-grid">
-            <div class="status-tile"><strong>Active Sessions:</strong> 38</div>
-            <div class="status-tile"><strong>Avg Response:</strong> 1.42s</div>
-            <div class="status-tile"><strong>Escalations:</strong> 4</div>
-            <div class="status-tile"><strong>Muted Feeds:</strong> 2</div>
+          <div>
+            <h4>Release</h4>
+            <div class="button-row">
+              <button class="btn btn-sm btn-success">Ship Patch</button>
+              <button class="btn btn-sm btn-warning">Canary</button>
+              <button class="btn btn-sm btn-danger">Rollback</button>
+            </div>
           </div>
-        </section>
-
-        <section class="card">
-          <h3>Toggle Wall</h3>
-          <p class="muted">Press buttons to switch aria-pressed states.</p>
-          <div class="button-row">
-            <button class="btn" data-toggle-pressed aria-pressed="false">Live Captions</button>
-            <button class="btn" data-toggle-pressed aria-pressed="true">Input Cleanup</button>
-            <button class="btn" data-toggle-pressed aria-pressed="false">Aggressive Retry</button>
-            <button class="btn" data-toggle-pressed aria-pressed="true">Analytics Mode</button>
-            <button class="btn" data-toggle-pressed aria-pressed="false">Focus Rings</button>
-            <button class="btn" data-toggle-pressed aria-pressed="false">Voice Polling</button>
+          <div>
+            <h4>Knowledge</h4>
+            <div class="button-row">
+              <button class="btn btn-sm">Open Docs</button>
+              <button class="btn btn-sm">Copy Prompt</button>
+              <button class="btn btn-sm">Share Notes</button>
+            </div>
           </div>
-        </section>
-
-        <section class="card">
-          <h3>Operations Timeline</h3>
-          <ul class="timeline">
-            <li>
-              <strong>15:04</strong>
-              <p>Voice transcript delay detected on checkout form.</p>
-              <button class="btn btn-sm">Inspect</button>
-            </li>
-            <li>
-              <strong>15:18</strong>
-              <p>Fallback command parser activated for 12 sessions.</p>
-              <button class="btn btn-sm btn-warning">Review</button>
-            </li>
-            <li>
-              <strong>15:29</strong>
-              <p>New guidance prompts published to landing pages.</p>
-              <button class="btn btn-sm btn-success">Accept</button>
-            </li>
-          </ul>
-        </section>
-
-        <section class="card">
-          <h3>Form Capture Output</h3>
-          <p class="muted">Submitting any form on this page writes output here.</p>
-          <div class="callout" data-form-output>
-            Waiting for submitted form data.
-          </div>
-        </section>
-      </aside>
+        </div>
+      </section>
     </div>
 
-    <section class="card">
-      <h3>Footer Action Grid</h3>
-      <div class="footer-grid">
-        <div>
-          <h4>Audit</h4>
-          <div class="button-row">
-            <button class="btn btn-sm">Run A11y Scan</button>
-            <button class="btn btn-sm">Capture Snapshot</button>
-            <button class="btn btn-sm">Open Logs</button>
-          </div>
-        </div>
-        <div>
-          <h4>Support</h4>
-          <div class="button-row">
-            <button class="btn btn-sm">Open Ticket</button>
-            <button class="btn btn-sm">Call User</button>
-            <button class="btn btn-sm">Add Memo</button>
-          </div>
-        </div>
-        <div>
-          <h4>Release</h4>
-          <div class="button-row">
-            <button class="btn btn-sm btn-success">Ship Patch</button>
-            <button class="btn btn-sm btn-warning">Canary</button>
-            <button class="btn btn-sm btn-danger">Rollback</button>
-          </div>
-        </div>
-        <div>
-          <h4>Knowledge</h4>
-          <div class="button-row">
-            <button class="btn btn-sm">Open Docs</button>
-            <button class="btn btn-sm">Copy Prompt</button>
-            <button class="btn btn-sm">Share Notes</button>
-          </div>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <script src="/complex-ui.js"></script>
-  <script type="module">
-    import { init } from '/src/index.tsx';
-    init({
-      projectId: '4ae21bf0-face-4cf8-b1a8-1043cefc46f3',
-      baseUrl: "localhost:8000"
-    });
-  </script>
-</body>
+    <script src="/complex-ui.js"></script>
+    <script type="module">
+      import { init } from "/src/index.tsx";
+      init({
+        projectId: "423eedbb-5029-407b-8490-ccc2ba7e92cd",
+        baseUrl: "localhost:8000",
+      });
+    </script>
+  </body>
 </html>

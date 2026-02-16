@@ -1,231 +1,277 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bulut Workflow Deck</title>
-  <link rel="stylesheet" href="/complex-ui.css">
-</head>
-<body>
-  <div class="site-shell">
-    <header class="site-header">
-      <div>
-        <h1 class="site-title">Workflow Deck</h1>
-        <p class="muted">Step-based screens with many actions, confirmations, and transitions.</p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bulut Workflow Deck</title>
+    <link rel="stylesheet" href="/complex-ui.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="site-header">
+        <div>
+          <h1 class="site-title">Workflow Deck</h1>
+          <p class="muted">
+            Step-based screens with many actions, confirmations, and
+            transitions.
+          </p>
+        </div>
+        <nav class="nav-row" aria-label="Primary">
+          <a class="nav-link" href="/index.html">Home</a>
+          <a class="nav-link" href="/forms-lab.html">Forms Lab</a>
+          <a class="nav-link" href="/buttons-lab.html">Buttons Lab</a>
+          <a class="nav-link" href="/workflows.html">Workflow Deck</a>
+        </nav>
+      </header>
+
+      <div class="layout">
+        <main class="main-column">
+          <section class="card">
+            <h2>Workflow 1: Onboard New Site</h2>
+            <form data-capture>
+              <div class="grid-2">
+                <label
+                  >Site Name
+                  <input name="site_name" required />
+                </label>
+                <label
+                  >Primary URL
+                  <input name="site_url" type="url" required />
+                </label>
+                <label
+                  >Auth Type
+                  <select name="auth_type">
+                    <option>None</option>
+                    <option>Basic</option>
+                    <option>Token</option>
+                    <option>SSO</option>
+                  </select>
+                </label>
+                <label
+                  >Crawl Depth
+                  <input
+                    name="crawl_depth"
+                    type="number"
+                    min="1"
+                    max="6"
+                    value="2"
+                  />
+                </label>
+              </div>
+              <fieldset style="margin-top: 12px">
+                <legend>Scan Targets</legend>
+                <div class="inline-options">
+                  <label
+                    ><input type="checkbox" name="target" value="landing" />
+                    Landing</label
+                  >
+                  <label
+                    ><input type="checkbox" name="target" value="signup" />
+                    Signup</label
+                  >
+                  <label
+                    ><input type="checkbox" name="target" value="checkout" />
+                    Checkout</label
+                  >
+                  <label
+                    ><input type="checkbox" name="target" value="account" />
+                    Account</label
+                  >
+                  <label
+                    ><input type="checkbox" name="target" value="help" />
+                    Help</label
+                  >
+                </div>
+              </fieldset>
+              <div class="button-row">
+                <button class="btn" type="button">Step 1: Verify URL</button>
+                <button class="btn" type="button">Step 2: Crawl</button>
+                <button class="btn" type="button">
+                  Step 3: Tag Components
+                </button>
+                <button class="btn" type="button">Step 4: Dry Run</button>
+                <button class="btn btn-primary" type="submit">
+                  Finish Onboarding
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <section class="card">
+            <h2>Workflow 2: Incident Response</h2>
+            <form data-capture>
+              <div class="form-grid">
+                <label
+                  >Incident ID
+                  <input name="incident_id" placeholder="INC-2026-0041" />
+                </label>
+                <label
+                  >Channel
+                  <select name="channel">
+                    <option>Voice</option>
+                    <option>Chat</option>
+                    <option>Hybrid</option>
+                  </select>
+                </label>
+                <label
+                  >Current Stage
+                  <select name="stage">
+                    <option>Detected</option>
+                    <option>Triage</option>
+                    <option>Mitigation</option>
+                    <option>Recovery</option>
+                  </select>
+                </label>
+                <label class="full"
+                  >Summary
+                  <textarea name="summary"></textarea>
+                </label>
+              </div>
+              <div class="button-row">
+                <button class="btn btn-warning" type="button">
+                  Page On-Call
+                </button>
+                <button class="btn" type="button">Open Bridge</button>
+                <button class="btn" type="button">Assign Lead</button>
+                <button class="btn btn-success" type="button">
+                  Deploy Hotfix
+                </button>
+                <button class="btn btn-danger" type="button">
+                  Freeze Releases
+                </button>
+                <button class="btn btn-primary" type="submit">
+                  Update Incident
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <section class="card">
+            <h2>Workflow 3: Release Checklist</h2>
+            <div class="grid-3">
+              <div class="status-tile">
+                <h4>Pre-Deploy</h4>
+                <div class="button-row">
+                  <button class="btn btn-sm">Lint</button>
+                  <button class="btn btn-sm">Typecheck</button>
+                  <button class="btn btn-sm">Unit Tests</button>
+                  <button class="btn btn-sm">A11y Snapshot</button>
+                </div>
+              </div>
+              <div class="status-tile">
+                <h4>Deploy</h4>
+                <div class="button-row">
+                  <button class="btn btn-sm btn-primary">Build</button>
+                  <button class="btn btn-sm btn-success">Deploy Canary</button>
+                  <button class="btn btn-sm">Open Monitor</button>
+                  <button class="btn btn-sm btn-warning">Pause</button>
+                </div>
+              </div>
+              <div class="status-tile">
+                <h4>Post-Deploy</h4>
+                <div class="button-row">
+                  <button class="btn btn-sm">Compare Metrics</button>
+                  <button class="btn btn-sm">Collect Feedback</button>
+                  <button class="btn btn-sm btn-success">Mark Complete</button>
+                  <button class="btn btn-sm btn-danger">Rollback</button>
+                </div>
+              </div>
+            </div>
+            <table class="data-table" style="margin-top: 14px">
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>Owner</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Verify keyboard navigation</td>
+                  <td>QA 2</td>
+                  <td>In Progress</td>
+                  <td>
+                    <button class="btn btn-sm">Open</button>
+                    <button class="btn btn-sm">Reassign</button>
+                    <button class="btn btn-sm btn-success">Done</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Screen reader smoke test</td>
+                  <td>QA 4</td>
+                  <td>Pending</td>
+                  <td>
+                    <button class="btn btn-sm">Open</button>
+                    <button class="btn btn-sm btn-warning">Escalate</button>
+                    <button class="btn btn-sm btn-danger">Block</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Landing page contrast validation</td>
+                  <td>Design</td>
+                  <td>Complete</td>
+                  <td>
+                    <button class="btn btn-sm">Open</button>
+                    <button class="btn btn-sm">Comment</button>
+                    <button class="btn btn-sm btn-success">Approve</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <section class="card">
+            <h3>Form Capture Output</h3>
+            <div class="callout" data-form-output>
+              Waiting for submitted form data.
+            </div>
+          </section>
+        </main>
+
+        <aside class="side-column">
+          <section class="card">
+            <h3>Workflow Shortcuts</h3>
+            <div class="button-row">
+              <button class="btn btn-sm">Jump to Step 1</button>
+              <button class="btn btn-sm">Jump to Step 2</button>
+              <button class="btn btn-sm">Jump to Step 3</button>
+              <button class="btn btn-sm">Jump to Step 4</button>
+              <button class="btn btn-sm btn-warning">Pause Workflow</button>
+              <button class="btn btn-sm btn-danger">Abort Workflow</button>
+            </div>
+          </section>
+
+          <section class="card">
+            <h3>Escalation Contacts</h3>
+            <ul class="timeline">
+              <li>
+                <strong>Ops Lead</strong>
+                <p>+1 (202) 555-0102</p>
+                <button class="btn btn-sm">Call</button>
+              </li>
+              <li>
+                <strong>Accessibility Lead</strong>
+                <p>+1 (202) 555-0188</p>
+                <button class="btn btn-sm">Call</button>
+              </li>
+              <li>
+                <strong>Infra Duty</strong>
+                <p>+1 (202) 555-0134</p>
+                <button class="btn btn-sm">Call</button>
+              </li>
+            </ul>
+          </section>
+        </aside>
       </div>
-      <nav class="nav-row" aria-label="Primary">
-        <a class="nav-link" href="/index.html">Home</a>
-        <a class="nav-link" href="/forms-lab.html">Forms Lab</a>
-        <a class="nav-link" href="/buttons-lab.html">Buttons Lab</a>
-        <a class="nav-link" href="/workflows.html">Workflow Deck</a>
-      </nav>
-    </header>
-
-    <div class="layout">
-      <main class="main-column">
-        <section class="card">
-          <h2>Workflow 1: Onboard New Site</h2>
-          <form data-capture>
-            <div class="grid-2">
-              <label>Site Name
-                <input name="site_name" required>
-              </label>
-              <label>Primary URL
-                <input name="site_url" type="url" required>
-              </label>
-              <label>Auth Type
-                <select name="auth_type">
-                  <option>None</option>
-                  <option>Basic</option>
-                  <option>Token</option>
-                  <option>SSO</option>
-                </select>
-              </label>
-              <label>Crawl Depth
-                <input name="crawl_depth" type="number" min="1" max="6" value="2">
-              </label>
-            </div>
-            <fieldset style="margin-top: 12px;">
-              <legend>Scan Targets</legend>
-              <div class="inline-options">
-                <label><input type="checkbox" name="target" value="landing"> Landing</label>
-                <label><input type="checkbox" name="target" value="signup"> Signup</label>
-                <label><input type="checkbox" name="target" value="checkout"> Checkout</label>
-                <label><input type="checkbox" name="target" value="account"> Account</label>
-                <label><input type="checkbox" name="target" value="help"> Help</label>
-              </div>
-            </fieldset>
-            <div class="button-row">
-              <button class="btn" type="button">Step 1: Verify URL</button>
-              <button class="btn" type="button">Step 2: Crawl</button>
-              <button class="btn" type="button">Step 3: Tag Components</button>
-              <button class="btn" type="button">Step 4: Dry Run</button>
-              <button class="btn btn-primary" type="submit">Finish Onboarding</button>
-            </div>
-          </form>
-        </section>
-
-        <section class="card">
-          <h2>Workflow 2: Incident Response</h2>
-          <form data-capture>
-            <div class="form-grid">
-              <label>Incident ID
-                <input name="incident_id" placeholder="INC-2026-0041">
-              </label>
-              <label>Channel
-                <select name="channel">
-                  <option>Voice</option>
-                  <option>Chat</option>
-                  <option>Hybrid</option>
-                </select>
-              </label>
-              <label>Current Stage
-                <select name="stage">
-                  <option>Detected</option>
-                  <option>Triage</option>
-                  <option>Mitigation</option>
-                  <option>Recovery</option>
-                </select>
-              </label>
-              <label class="full">Summary
-                <textarea name="summary"></textarea>
-              </label>
-            </div>
-            <div class="button-row">
-              <button class="btn btn-warning" type="button">Page On-Call</button>
-              <button class="btn" type="button">Open Bridge</button>
-              <button class="btn" type="button">Assign Lead</button>
-              <button class="btn btn-success" type="button">Deploy Hotfix</button>
-              <button class="btn btn-danger" type="button">Freeze Releases</button>
-              <button class="btn btn-primary" type="submit">Update Incident</button>
-            </div>
-          </form>
-        </section>
-
-        <section class="card">
-          <h2>Workflow 3: Release Checklist</h2>
-          <div class="grid-3">
-            <div class="status-tile">
-              <h4>Pre-Deploy</h4>
-              <div class="button-row">
-                <button class="btn btn-sm">Lint</button>
-                <button class="btn btn-sm">Typecheck</button>
-                <button class="btn btn-sm">Unit Tests</button>
-                <button class="btn btn-sm">A11y Snapshot</button>
-              </div>
-            </div>
-            <div class="status-tile">
-              <h4>Deploy</h4>
-              <div class="button-row">
-                <button class="btn btn-sm btn-primary">Build</button>
-                <button class="btn btn-sm btn-success">Deploy Canary</button>
-                <button class="btn btn-sm">Open Monitor</button>
-                <button class="btn btn-sm btn-warning">Pause</button>
-              </div>
-            </div>
-            <div class="status-tile">
-              <h4>Post-Deploy</h4>
-              <div class="button-row">
-                <button class="btn btn-sm">Compare Metrics</button>
-                <button class="btn btn-sm">Collect Feedback</button>
-                <button class="btn btn-sm btn-success">Mark Complete</button>
-                <button class="btn btn-sm btn-danger">Rollback</button>
-              </div>
-            </div>
-          </div>
-          <table class="data-table" style="margin-top: 14px;">
-            <thead>
-              <tr>
-                <th>Task</th>
-                <th>Owner</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Verify keyboard navigation</td>
-                <td>QA 2</td>
-                <td>In Progress</td>
-                <td>
-                  <button class="btn btn-sm">Open</button>
-                  <button class="btn btn-sm">Reassign</button>
-                  <button class="btn btn-sm btn-success">Done</button>
-                </td>
-              </tr>
-              <tr>
-                <td>Screen reader smoke test</td>
-                <td>QA 4</td>
-                <td>Pending</td>
-                <td>
-                  <button class="btn btn-sm">Open</button>
-                  <button class="btn btn-sm btn-warning">Escalate</button>
-                  <button class="btn btn-sm btn-danger">Block</button>
-                </td>
-              </tr>
-              <tr>
-                <td>Landing page contrast validation</td>
-                <td>Design</td>
-                <td>Complete</td>
-                <td>
-                  <button class="btn btn-sm">Open</button>
-                  <button class="btn btn-sm">Comment</button>
-                  <button class="btn btn-sm btn-success">Approve</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
-
-        <section class="card">
-          <h3>Form Capture Output</h3>
-          <div class="callout" data-form-output>Waiting for submitted form data.</div>
-        </section>
-      </main>
-
-      <aside class="side-column">
-        <section class="card">
-          <h3>Workflow Shortcuts</h3>
-          <div class="button-row">
-            <button class="btn btn-sm">Jump to Step 1</button>
-            <button class="btn btn-sm">Jump to Step 2</button>
-            <button class="btn btn-sm">Jump to Step 3</button>
-            <button class="btn btn-sm">Jump to Step 4</button>
-            <button class="btn btn-sm btn-warning">Pause Workflow</button>
-            <button class="btn btn-sm btn-danger">Abort Workflow</button>
-          </div>
-        </section>
-
-        <section class="card">
-          <h3>Escalation Contacts</h3>
-          <ul class="timeline">
-            <li>
-              <strong>Ops Lead</strong>
-              <p>+1 (202) 555-0102</p>
-              <button class="btn btn-sm">Call</button>
-            </li>
-            <li>
-              <strong>Accessibility Lead</strong>
-              <p>+1 (202) 555-0188</p>
-              <button class="btn btn-sm">Call</button>
-            </li>
-            <li>
-              <strong>Infra Duty</strong>
-              <p>+1 (202) 555-0134</p>
-              <button class="btn btn-sm">Call</button>
-            </li>
-          </ul>
-        </section>
-      </aside>
     </div>
-  </div>
 
-  <script src="/complex-ui.js"></script>
-      <script type="module">
-    import { init } from '/src/index.tsx';
-    init({
-      projectId: '4ae21bf0-face-4cf8-b1a8-1043cefc46f3',
-    });
-  </script>
-</body>
+    <script src="/complex-ui.js"></script>
+    <script type="module">
+      import { init } from "/src/index.tsx";
+      init({
+        projectId: "423eedbb-5029-407b-8490-ccc2ba7e92cd",
+      });
+    </script>
+  </body>
 </html>

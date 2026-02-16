@@ -1,226 +1,371 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bulut Forms Lab</title>
-  <link rel="stylesheet" href="/complex-ui.css">
-</head>
-<body>
-  <div class="site-shell">
-    <header class="site-header">
-      <div>
-        <h1 class="site-title">Forms Lab</h1>
-        <p class="muted">Multiple dense form groups for accessibility and QA stress testing.</p>
-      </div>
-      <nav class="nav-row" aria-label="Primary">
-        <a class="nav-link" href="/index.html">Home</a>
-        <a class="nav-link" href="/forms-lab.html">Forms Lab</a>
-        <a class="nav-link" href="/buttons-lab.html">Buttons Lab</a>
-        <a class="nav-link" href="/workflows.html">Workflow Deck</a>
-      </nav>
-    </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bulut Forms Lab</title>
+    <link rel="stylesheet" href="/complex-ui.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="site-header">
+        <div>
+          <h1 class="site-title">Forms Lab</h1>
+          <p class="muted">
+            Multiple dense form groups for accessibility and QA stress testing.
+          </p>
+        </div>
+        <nav class="nav-row" aria-label="Primary">
+          <a class="nav-link" href="/index.html">Home</a>
+          <a class="nav-link" href="/forms-lab.html">Forms Lab</a>
+          <a class="nav-link" href="/buttons-lab.html">Buttons Lab</a>
+          <a class="nav-link" href="/workflows.html">Workflow Deck</a>
+        </nav>
+      </header>
 
-    <main class="main-column">
-      <section class="card">
-        <h2>Account and Identity</h2>
-        <form data-capture>
-          <div class="form-grid">
-            <label>Username
-              <input name="username" required minlength="3">
-            </label>
-            <label>Password
-              <input name="password" type="password" required>
-            </label>
-            <label>Confirm Password
-              <input name="password_confirm" type="password" required>
-            </label>
-            <label>Security Question
-              <select name="security_question">
-                <option>First school name?</option>
-                <option>Favorite teacher?</option>
-                <option>Dream travel destination?</option>
-              </select>
-            </label>
-            <label>Security Answer
-              <input name="security_answer">
-            </label>
-            <label>Backup Email
-              <input name="backup_email" type="email">
-            </label>
-            <label class="full">Bio
-              <textarea name="bio" placeholder="Add profile context for support staff."></textarea>
-            </label>
-          </div>
-          <fieldset>
-            <legend>Authentication</legend>
-            <div class="inline-options">
-              <label><input type="checkbox" name="mfa_sms" value="1"> SMS MFA</label>
-              <label><input type="checkbox" name="mfa_totp" value="1"> TOTP App</label>
-              <label><input type="checkbox" name="mfa_email" value="1"> Email Code</label>
-              <label><input type="checkbox" name="backup_codes" value="1"> Backup Codes</label>
+      <main class="main-column">
+        <section class="card">
+          <h2>Account and Identity</h2>
+          <form data-capture>
+            <div class="form-grid">
+              <label
+                >Username
+                <input name="username" required minlength="3" />
+              </label>
+              <label
+                >Password
+                <input name="password" type="password" required />
+              </label>
+              <label
+                >Confirm Password
+                <input name="password_confirm" type="password" required />
+              </label>
+              <label
+                >Security Question
+                <select name="security_question">
+                  <option>First school name?</option>
+                  <option>Favorite teacher?</option>
+                  <option>Dream travel destination?</option>
+                </select>
+              </label>
+              <label
+                >Security Answer
+                <input name="security_answer" />
+              </label>
+              <label
+                >Backup Email
+                <input name="backup_email" type="email" />
+              </label>
+              <label class="full"
+                >Bio
+                <textarea
+                  name="bio"
+                  placeholder="Add profile context for support staff."
+                ></textarea>
+              </label>
             </div>
-          </fieldset>
-          <div class="button-row">
-            <button class="btn btn-primary" type="submit">Create Account</button>
-            <button class="btn" type="button">Verify Email</button>
-            <button class="btn btn-warning" type="button">Generate Password</button>
-            <button class="btn btn-danger" type="reset">Reset</button>
-          </div>
-        </form>
-      </section>
-
-      <section class="card">
-        <h2>Accessibility Preferences</h2>
-        <form data-capture>
-          <div class="grid-3">
-            <label>Font Size
-              <input name="font_size" type="range" min="12" max="28" value="18">
-            </label>
-            <label>Speech Rate
-              <input name="speech_rate" type="range" min="0.5" max="2" value="1" step="0.1">
-            </label>
-            <label>Cursor Thickness
-              <input name="cursor" type="range" min="1" max="6" value="3">
-            </label>
-          </div>
-          <fieldset style="margin-top: 12px;">
-            <legend>Interface Overrides</legend>
-            <div class="inline-options">
-              <label><input type="checkbox" name="override" value="contrast"> High Contrast</label>
-              <label><input type="checkbox" name="override" value="underline_links"> Underline Links</label>
-              <label><input type="checkbox" name="override" value="pause_animations"> Pause Animations</label>
-              <label><input type="checkbox" name="override" value="focus_ring"> Thick Focus Ring</label>
-              <label><input type="checkbox" name="override" value="mono_font"> Monospace</label>
+            <fieldset>
+              <legend>Authentication</legend>
+              <div class="inline-options">
+                <label
+                  ><input type="checkbox" name="mfa_sms" value="1" /> SMS
+                  MFA</label
+                >
+                <label
+                  ><input type="checkbox" name="mfa_totp" value="1" /> TOTP
+                  App</label
+                >
+                <label
+                  ><input type="checkbox" name="mfa_email" value="1" /> Email
+                  Code</label
+                >
+                <label
+                  ><input type="checkbox" name="backup_codes" value="1" />
+                  Backup Codes</label
+                >
+              </div>
+            </fieldset>
+            <div class="button-row">
+              <button class="btn btn-primary" type="submit">
+                Create Account
+              </button>
+              <button class="btn" type="button">Verify Email</button>
+              <button class="btn btn-warning" type="button">
+                Generate Password
+              </button>
+              <button class="btn btn-danger" type="reset">Reset</button>
             </div>
-          </fieldset>
-          <fieldset style="margin-top: 12px;">
-            <legend>Voice Output</legend>
-            <div class="inline-options">
-              <label><input type="radio" name="voice_profile" value="neutral" checked> Neutral</label>
-              <label><input type="radio" name="voice_profile" value="warm"> Warm</label>
-              <label><input type="radio" name="voice_profile" value="compact"> Compact</label>
-              <label><input type="radio" name="voice_profile" value="assertive"> Assertive</label>
+          </form>
+        </section>
+
+        <section class="card">
+          <h2>Accessibility Preferences</h2>
+          <form data-capture>
+            <div class="grid-3">
+              <label
+                >Font Size
+                <input
+                  name="font_size"
+                  type="range"
+                  min="12"
+                  max="28"
+                  value="18"
+                />
+              </label>
+              <label
+                >Speech Rate
+                <input
+                  name="speech_rate"
+                  type="range"
+                  min="0.5"
+                  max="2"
+                  value="1"
+                  step="0.1"
+                />
+              </label>
+              <label
+                >Cursor Thickness
+                <input name="cursor" type="range" min="1" max="6" value="3" />
+              </label>
             </div>
-          </fieldset>
-          <div class="button-row">
-            <button class="btn btn-primary" type="submit">Save Preferences</button>
-            <button class="btn" type="button">Preview Voice</button>
-            <button class="btn btn-success" type="button">Apply to All Sites</button>
-            <button class="btn btn-danger" type="reset">Undo</button>
-          </div>
-        </form>
-      </section>
-
-      <section class="card">
-        <h2>Billing and Limits</h2>
-        <form data-capture>
-          <div class="form-grid">
-            <label>Plan
-              <select name="plan">
-                <option>Starter</option>
-                <option selected>Pro</option>
-                <option>Enterprise</option>
-              </select>
-            </label>
-            <label>Seats
-              <input name="seats" type="number" min="1" value="12">
-            </label>
-            <label>Monthly Cap
-              <input name="monthly_cap" type="number" min="100" step="100" value="3000">
-            </label>
-            <label>Card Number
-              <input name="card_number" inputmode="numeric" maxlength="19" placeholder="1234 5678 9012 3456">
-            </label>
-            <label>Expiry
-              <input name="expiry" placeholder="MM/YY">
-            </label>
-            <label>CVC
-              <input name="cvc" inputmode="numeric" maxlength="4">
-            </label>
-            <label>Billing Start
-              <input name="billing_start" type="date">
-            </label>
-            <label>Invoice Day
-              <input name="invoice_day" type="number" min="1" max="28" value="1">
-            </label>
-            <label>Currency
-              <select name="currency">
-                <option>USD</option>
-                <option>EUR</option>
-                <option>GBP</option>
-              </select>
-            </label>
-          </div>
-          <div class="button-row">
-            <button class="btn btn-primary" type="submit">Save Billing</button>
-            <button class="btn" type="button">Send Invoice Test</button>
-            <button class="btn btn-warning" type="button">Pause Subscription</button>
-            <button class="btn btn-danger" type="button">Cancel Plan</button>
-          </div>
-        </form>
-      </section>
-
-      <section class="card">
-        <h2>Incident Intake</h2>
-        <form data-capture>
-          <div class="form-grid">
-            <label>Issue Title
-              <input name="issue_title">
-            </label>
-            <label>Component
-              <input name="component" placeholder="header/nav/modal...">
-            </label>
-            <label>Severity
-              <select name="severity">
-                <option>Low</option>
-                <option>Medium</option>
-                <option>High</option>
-                <option>Critical</option>
-              </select>
-            </label>
-            <label class="full">Reproduction Steps
-              <textarea name="steps"></textarea>
-            </label>
-            <label class="full">Expected Behavior
-              <textarea name="expected"></textarea>
-            </label>
-            <label class="full">Actual Behavior
-              <textarea name="actual"></textarea>
-            </label>
-          </div>
-          <fieldset>
-            <legend>Browser Matrix</legend>
-            <div class="inline-options">
-              <label><input type="checkbox" name="browser" value="chrome"> Chrome</label>
-              <label><input type="checkbox" name="browser" value="safari"> Safari</label>
-              <label><input type="checkbox" name="browser" value="firefox"> Firefox</label>
-              <label><input type="checkbox" name="browser" value="edge"> Edge</label>
-              <label><input type="checkbox" name="browser" value="mobile"> Mobile</label>
+            <fieldset style="margin-top: 12px">
+              <legend>Interface Overrides</legend>
+              <div class="inline-options">
+                <label
+                  ><input type="checkbox" name="override" value="contrast" />
+                  High Contrast</label
+                >
+                <label
+                  ><input
+                    type="checkbox"
+                    name="override"
+                    value="underline_links"
+                  />
+                  Underline Links</label
+                >
+                <label
+                  ><input
+                    type="checkbox"
+                    name="override"
+                    value="pause_animations"
+                  />
+                  Pause Animations</label
+                >
+                <label
+                  ><input type="checkbox" name="override" value="focus_ring" />
+                  Thick Focus Ring</label
+                >
+                <label
+                  ><input type="checkbox" name="override" value="mono_font" />
+                  Monospace</label
+                >
+              </div>
+            </fieldset>
+            <fieldset style="margin-top: 12px">
+              <legend>Voice Output</legend>
+              <div class="inline-options">
+                <label
+                  ><input
+                    type="radio"
+                    name="voice_profile"
+                    value="neutral"
+                    checked
+                  />
+                  Neutral</label
+                >
+                <label
+                  ><input type="radio" name="voice_profile" value="warm" />
+                  Warm</label
+                >
+                <label
+                  ><input type="radio" name="voice_profile" value="compact" />
+                  Compact</label
+                >
+                <label
+                  ><input type="radio" name="voice_profile" value="assertive" />
+                  Assertive</label
+                >
+              </div>
+            </fieldset>
+            <div class="button-row">
+              <button class="btn btn-primary" type="submit">
+                Save Preferences
+              </button>
+              <button class="btn" type="button">Preview Voice</button>
+              <button class="btn btn-success" type="button">
+                Apply to All Sites
+              </button>
+              <button class="btn btn-danger" type="reset">Undo</button>
             </div>
-          </fieldset>
-          <div class="button-row">
-            <button class="btn btn-primary" type="submit">Submit Incident</button>
-            <button class="btn" type="button">Attach Screenshot</button>
-            <button class="btn" type="button">Attach Console Log</button>
-            <button class="btn btn-success" type="button">Auto Classify</button>
+          </form>
+        </section>
+
+        <section class="card">
+          <h2>Billing and Limits</h2>
+          <form data-capture>
+            <div class="form-grid">
+              <label
+                >Plan
+                <select name="plan">
+                  <option>Starter</option>
+                  <option selected>Pro</option>
+                  <option>Enterprise</option>
+                </select>
+              </label>
+              <label
+                >Seats
+                <input name="seats" type="number" min="1" value="12" />
+              </label>
+              <label
+                >Monthly Cap
+                <input
+                  name="monthly_cap"
+                  type="number"
+                  min="100"
+                  step="100"
+                  value="3000"
+                />
+              </label>
+              <label
+                >Card Number
+                <input
+                  name="card_number"
+                  inputmode="numeric"
+                  maxlength="19"
+                  placeholder="1234 5678 9012 3456"
+                />
+              </label>
+              <label
+                >Expiry
+                <input name="expiry" placeholder="MM/YY" />
+              </label>
+              <label
+                >CVC
+                <input name="cvc" inputmode="numeric" maxlength="4" />
+              </label>
+              <label
+                >Billing Start
+                <input name="billing_start" type="date" />
+              </label>
+              <label
+                >Invoice Day
+                <input
+                  name="invoice_day"
+                  type="number"
+                  min="1"
+                  max="28"
+                  value="1"
+                />
+              </label>
+              <label
+                >Currency
+                <select name="currency">
+                  <option>USD</option>
+                  <option>EUR</option>
+                  <option>GBP</option>
+                </select>
+              </label>
+            </div>
+            <div class="button-row">
+              <button class="btn btn-primary" type="submit">
+                Save Billing
+              </button>
+              <button class="btn" type="button">Send Invoice Test</button>
+              <button class="btn btn-warning" type="button">
+                Pause Subscription
+              </button>
+              <button class="btn btn-danger" type="button">Cancel Plan</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="card">
+          <h2>Incident Intake</h2>
+          <form data-capture>
+            <div class="form-grid">
+              <label
+                >Issue Title
+                <input name="issue_title" />
+              </label>
+              <label
+                >Component
+                <input name="component" placeholder="header/nav/modal..." />
+              </label>
+              <label
+                >Severity
+                <select name="severity">
+                  <option>Low</option>
+                  <option>Medium</option>
+                  <option>High</option>
+                  <option>Critical</option>
+                </select>
+              </label>
+              <label class="full"
+                >Reproduction Steps
+                <textarea name="steps"></textarea>
+              </label>
+              <label class="full"
+                >Expected Behavior
+                <textarea name="expected"></textarea>
+              </label>
+              <label class="full"
+                >Actual Behavior
+                <textarea name="actual"></textarea>
+              </label>
+            </div>
+            <fieldset>
+              <legend>Browser Matrix</legend>
+              <div class="inline-options">
+                <label
+                  ><input type="checkbox" name="browser" value="chrome" />
+                  Chrome</label
+                >
+                <label
+                  ><input type="checkbox" name="browser" value="safari" />
+                  Safari</label
+                >
+                <label
+                  ><input type="checkbox" name="browser" value="firefox" />
+                  Firefox</label
+                >
+                <label
+                  ><input type="checkbox" name="browser" value="edge" />
+                  Edge</label
+                >
+                <label
+                  ><input type="checkbox" name="browser" value="mobile" />
+                  Mobile</label
+                >
+              </div>
+            </fieldset>
+            <div class="button-row">
+              <button class="btn btn-primary" type="submit">
+                Submit Incident
+              </button>
+              <button class="btn" type="button">Attach Screenshot</button>
+              <button class="btn" type="button">Attach Console Log</button>
+              <button class="btn btn-success" type="button">
+                Auto Classify
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <section class="card">
+          <h3>Form Capture Output</h3>
+          <div class="callout" data-form-output>
+            Waiting for submitted form data.
           </div>
-        </form>
-      </section>
+        </section>
+      </main>
+    </div>
 
-      <section class="card">
-        <h3>Form Capture Output</h3>
-        <div class="callout" data-form-output>Waiting for submitted form data.</div>
-      </section>
-    </main>
-  </div>
-
-  <script src="/complex-ui.js"></script>
+    <script src="/complex-ui.js"></script>
     <script type="module">
-    import { init } from '/src/index.tsx';
-    init({
-      projectId: '4ae21bf0-face-4cf8-b1a8-1043cefc46f3',
-    });
-  </script>
-</body>
+      import { init } from "/src/index.tsx";
+      init({
+        projectId: "423eedbb-5029-407b-8490-ccc2ba7e92cd",
+      });
+    </script>
+  </body>
 </html>

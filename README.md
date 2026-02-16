@@ -1,16 +1,45 @@
+<p align="center">
+  <img src="./public/bulut_banner_github.png" alt="Bulut Banner" />
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/@auticlabs/bulut">
+    <img src="https://img.shields.io/npm/v/@auticlabs/bulut" alt="npm version" />
+  </a>
+  <a href="https://www.npmjs.com/package/@auticlabs/bulut">
+    <img src="https://img.shields.io/npm/dw/@auticlabs/bulut" alt="npm downloads" />
+  </a>
+  <a href="https://github.com/gpercem/bulutbot">
+    <img src="https://img.shields.io/github/stars/gpercem/bulutbot" alt="github stars" />
+  </a>
+  <a href="https://github.com/gpercem/bulutbot/issues">
+    <img src="https://img.shields.io/github/issues/gpercem/bulutbot" alt="issues" />
+  </a>
+  <a href="https://github.com/gpercem/bulutbot/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/gpercem/bulutbot" alt="license" />
+  </a>
+</p>
+
 # Bulut
 
-A lightweight, embeddable AI chatbot widget for React, Next.js, and Vite applications. Renders inside a Shadow DOM so its styles never leak into your app.
+Bulut is an embeddable AI accessibility assistant for modern web applications.  
+It provides real-time voice interaction, contextual understanding of your pages, and structured tool-based navigation — all isolated inside a Shadow DOM.
 
-## Features
+Designed for production use. Built for accessibility from the ground up.
 
-- Voice input with real-time STT → LLM → TTS pipeline
-- Floating chat window with streaming responses
-- Built-in tool calling (page navigation, element interaction)
-- Themeable via a single hex colour prop
-- Zero-CSS — everything is scoped inside Shadow DOM
-- Accessibility mode for hands-free usage
-- Tiny footprint — ships as a single JS bundle
+---
+
+## Core Capabilities
+
+- Real-time voice pipeline (STT → LLM → TTS with streaming)
+- Structured tool calling (navigate, click, scroll, context retrieval)
+- Floating chat interface with compact and full chat modes
+- Accessibility-first continuous conversation mode
+- Shadow DOM isolation (no CSS leakage)
+- Single bundle distribution
+- Minimal integration surface
+
+---
 
 ## Installation
 
@@ -18,162 +47,193 @@ A lightweight, embeddable AI chatbot widget for React, Next.js, and Vite applica
 npm install bulutbot
 ```
 
-## Quick Start
+---
+
+## Quick Integration
 
 ### React / Vite
 
 ```tsx
-import { Bulut } from 'bulutbot';
+import { Bulut } from "bulutbot";
 
-function App() {
+export default function App() {
   return (
     <>
       <h1>My App</h1>
-      <Bulut
-        projectId="your-project-id"
-      />
+      <Bulut projectId="your-project-id" />
     </>
   );
 }
-
-export default App;
 ```
+
+---
 
 ### Next.js (App Router)
 
-The component is marked `'use client'` internally, so you can use it directly in Server Components:
+The component internally uses `'use client'`, so it can be placed directly in layouts:
 
 ```tsx
 // app/layout.tsx
-import { Bulut } from 'bulut';
+import { Bulut } from "bulutbot";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
         {children}
-        <Bulut
-          projectId="your-project-id"
-        />
+        <Bulut projectId="your-project-id" />
       </body>
     </html>
   );
 }
 ```
 
-Or import it inside a client component if you need to control it conditionally:
+If conditional rendering is required:
 
 ```tsx
-// components/ChatWidget.tsx
-'use client';
+"use client";
 
-import { Bulut } from 'bulut';
+import { Bulut } from "bulutbot";
 
 export function ChatWidget() {
   return (
     <Bulut
       projectId="your-project-id"
       baseColor="#0ea5e9"
-      voice="ali"
+      voice="alloy"
     />
   );
 }
 ```
 
+---
+
 ### Next.js (Pages Router)
 
 ```tsx
 // pages/_app.tsx
-import type { AppProps } from 'next/app';
-import { Bulut } from 'bulut';
+import type { AppProps } from "next/app";
+import { Bulut } from "bulutbot";
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <>
       <Component {...pageProps} />
-      <Bulut
-        projectId="your-project-id"
-      />
+      <Bulut projectId="your-project-id" />
     </>
   );
 }
 ```
 
-### Vanilla HTML (Embed Script)
+---
 
-For non-React sites, use the `bulut/embed` entry point:
+### Vanilla HTML (Embed Mode)
+
+For non-React environments:
 
 ```html
 <script type="module">
-  import Bulut from 'https://unpkg.com/bulut/dist/embed.js';
+  import Bulut from "https://unpkg.com/bulutbot/dist/embed.js";
+
   Bulut.init({
-    projectId: 'your-project-id',
+    projectId: "your-project-id"
   });
 </script>
 ```
 
-## Props
+---
+
+## Configuration
+
+### Component Props
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `projectId` | `string` | — | **Required.** Your Bulut project ID. |
-| `backendBaseUrl` | `string` | `"http://localhost:8000"` | Backend API URL. |
-| `model` | `string` | `"google/gemini-3-flash-preview:nitro"` | LLM model identifier. |
-| `voice` | `"alloy" \| "zeynep" \| "ali"` | `"alloy"` | Voice for TTS output. |
-| `baseColor` | `string` | `"#6C03C1"` | Primary theme colour (hex). Button, header, and user message bubbles will use this colour. |
+| `projectId` | `string` | — | Required project identifier. |
+| `backendBaseUrl` | `string` | `"http://localhost:8000"` | Backend API base URL. |
+| `model` | `string` | `"google/gemini-3-flash-preview:nitro"` | LLM identifier. |
+| `voice` | `"alloy" \| "zeynep" \| "ali"` | `"alloy"` | TTS voice selection. |
+| `baseColor` | `string` | `"#6C03C1"` | Primary accent color (hex). |
+
+---
 
 ## Embed API
 
-When using the `bulut/embed` script entry, the following methods are available:
+When using the embed entry:
 
 ### `Bulut.init(options)`
 
-Initialize the widget. Accepts the same props as the React component, plus:
+Initializes the widget.
 
-- `containerId` (optional) — ID of an existing DOM element to mount into. If omitted, a container is created automatically.
+Additional option:
+
+- `containerId` — Mount into an existing element instead of auto-creating one.
 
 ```js
 Bulut.init({
-  projectId: 'your-project-id',
-  baseColor: '#0ea5e9',
+  projectId: "your-project-id",
+  baseColor: "#0ea5e9"
 });
 ```
 
 ### `Bulut.destroy()`
 
-Remove the widget from the page and clean up.
+Unmounts the widget and cleans listeners.
 
 ### `Bulut.isReady()`
 
-Returns `true` if the widget is currently initialized.
+Returns boolean initialization state.
 
-## Theming
+---
 
-Pass a `baseColor` hex string to change the accent colour across the entire widget:
+## Accessibility Mode
 
-```tsx
-<Bulut projectId="..." baseColor="#0ea5e9" />
-```
+When accessibility mode is active:
 
-The widget inherits the host page's `font-family`, so it will match your site's typography automatically.
+- Voice becomes the primary interface
+- Responses become more descriptive
+- Listening auto-restarts after speech output
+- Conversation flows continuously
 
-## How It Works
+This mode is optimized for visually impaired users and hands-free environments.
 
-The `<Bulut>` React component dynamically imports the Preact-based widget at runtime and mounts it inside a Shadow DOM container. This means:
+---
 
-1. **No style conflicts** — widget CSS is fully isolated.
-2. **SSR-safe** — the dynamic import avoids `window`/`document` at build time.
-3. **Lightweight** — Preact keeps the bundle small while React stays your app's framework.
+## Architecture Notes
+
+Bulut dynamically loads a lightweight Preact-based runtime and mounts it inside a Shadow DOM container.
+
+Implications:
+
+1. No global style collisions.
+2. SSR-safe via runtime import.
+3. Small bundle size.
+4. Framework-agnostic backend communication.
+
+The assistant retrieves structured page context and executes explicit tool calls instead of relying purely on text generation.
+
+---
 
 ## Browser Support
 
-Modern browsers that support ES2020+:
+ES2020+ environments:
 
 - Chrome 80+
 - Firefox 80+
 - Safari 14+
 - Edge 80+
 
+---
+
+## Links
+
+- Website: https://bulut.lu  
+- About: https://bulut.lu/about  
+- npm: https://www.npmjs.com/package/@auticlabs/bulut  
+- Backend Repository: https://github.com/gpercem/bulutbot  
+
+---
+
 ## License
 
-MIT
+This project is licensed under the [MIT License](./LICENSE).
